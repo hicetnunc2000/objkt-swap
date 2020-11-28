@@ -1,5 +1,5 @@
-parameter (or (pair %originate_sell_order (pair (nat %price_per_tk) (option %timeframe int)) (pair (nat %tk_amount) (nat %tk_id))) (pair %swap (address %destination) (pair (bool %kreuz) (nat %tk_amount))));
-storage   (pair (pair (address %fa2) (address %oracle)) (pair (big_map %sell_orders address (pair (pair (mutez %fee) (address %issuer)) (pair (timestamp %timelock) (pair (nat %tk_amount) (nat %tk_id))))) (big_map %white_list address bool)));
+parameter (or (pair %originate_sell_order (pair (mutez %price_per_tk) (option %timeframe int)) (pair (nat %tk_amount) (nat %tk_id))) (or (pair %swap (address %destination) (nat %tk_amount)) (unit %withdraw_fees)));
+storage   (pair (address %fa2) (pair (address %oracle) (big_map %sell_orders address (pair (pair (mutez %fee) (address %issuer)) (pair (timestamp %timeframe) (pair (nat %tk_amount) (nat %tk_id)))))));
 code
   {
     DUP;
@@ -15,14 +15,14 @@ code
         IF_SOME
           {}
           {
-            PUSH int 141;
+            PUSH int 83;
             FAILWITH;
           };
         ISNAT;
         IF_SOME
           {}
           {
-            PUSH int 141;
+            PUSH int 83;
             FAILWITH;
           };
         MUL;
@@ -53,7 +53,7 @@ code
         IF_SOME
           {}
           {
-            PUSH int 141;
+            PUSH int 83;
             FAILWITH;
           };
         MUL;
@@ -63,12 +63,10 @@ code
         PAIR;
         SELF;
         ADDRESS;
-        PUSH mutez 1;
-        DIG 3;
+        DIG 2;
         DUP;
-        DUG 4;
+        DUG 3;
         CAAR;
-        MUL;
         PAIR;
         SENDER;
         PAIR;
@@ -77,7 +75,7 @@ code
         NONE key_hash;
         CREATE_CONTRACT
          { parameter unit;
-           storage   (pair (pair (address %issuer) (pair (mutez %price_per_tk) (address %protocol))) (pair (timestamp %timelock) (pair (nat %tk_amount) (nat %tk_id))));
+           storage   (pair (pair (address %issuer) (pair (mutez %price_per_tk) (address %protocol))) (pair (timestamp %timeframe) (pair (nat %tk_amount) (nat %tk_id))));
            code
              {
                CDR;
@@ -92,25 +90,26 @@ code
                    PUSH string "WrongCondition: sp.amount >= self.data.price_per_tk";
                    FAILWITH;
                  };
-               PUSH mutez 1000000;
-               AMOUNT;
+               DUP;
+               CDAR;
+               NOW;
                COMPARE;
-               GE;
+               LE;
                IF
                  {}
                  {
-                   PUSH string "WrongCondition: sp.amount >= sp.tez(1)";
+                   PUSH string "WrongCondition: sp.now <= self.data.timeframe";
                    FAILWITH;
                  };
                DUP;
                CADDR;
-               CONTRACT %swap (pair (address %destination) (pair (bool %kreuz) (nat %tk_amount)));
+               CONTRACT %swap (pair (address %destination) (nat %tk_amount));
                NIL operation;
                SWAP;
                IF_SOME
                  {}
                  {
-                   PUSH int 122;
+                   PUSH int 65;
                    FAILWITH;
                  };
                PUSH mutez 0;
@@ -124,7 +123,7 @@ code
                IF_SOME
                  {}
                  {
-                   PUSH int 115;
+                   PUSH int 59;
                    FAILWITH;
                  };
                CAR;
@@ -135,7 +134,7 @@ code
                IF_SOME
                  {}
                  {
-                   PUSH int 115;
+                   PUSH int 59;
                    FAILWITH;
                  };
                CAR;
@@ -143,12 +142,10 @@ code
                IF_SOME
                  {}
                  {
-                   PUSH int 115;
+                   PUSH int 59;
                    FAILWITH;
                  };
                CAR;
-               PUSH bool True;
-               PAIR;
                SENDER;
                PAIR;
                TRANSFER_TOKENS;
@@ -161,7 +158,7 @@ code
                IF_SOME
                  {}
                  {
-                   PUSH int 117;
+                   PUSH int 61;
                    FAILWITH;
                  };
                AMOUNT;
@@ -188,16 +185,16 @@ code
         SWAP;
         CDR;
         DUP;
-        CDR;
-        SWAP;
         CAR;
+        SWAP;
+        CDR;
         DIG 4;
         CDR;
         SOME;
         IF_SOME
           {}
           {
-            PUSH int 145;
+            PUSH int 87;
             FAILWITH;
           };
         DIG 5;
@@ -219,7 +216,7 @@ code
         IF_SOME
           {}
           {
-            PUSH int 141;
+            PUSH int 83;
             FAILWITH;
           };
         MUL;
@@ -234,14 +231,14 @@ code
         IF_SOME
           {}
           {
-            PUSH int 141;
+            PUSH int 83;
             FAILWITH;
           };
         ISNAT;
         IF_SOME
           {}
           {
-            PUSH int 141;
+            PUSH int 83;
             FAILWITH;
           };
         MUL;
@@ -250,83 +247,54 @@ code
         SOME;
         SWAP;
         UPDATE;
+        SWAP;
         PAIR;
         SWAP;
         PAIR;
         SWAP;
       }
       {
-        DUP;
-        CDAR;
-        PUSH bool True;
-        COMPARE;
-        EQ;
-        IF
+        IF_LEFT
           {
             SWAP;
             DUP;
             DUG 2;
-            CDAR;
+            CDDR;
             SENDER;
             GET;
             IF_SOME
               {}
               {
-                PUSH int 169;
+                PUSH int 110;
                 FAILWITH;
               };
             CDAR;
             NOW;
             COMPARE;
-            LT;
-            IF
-              {
-                SWAP;
-                DUP;
-                DUG 2;
-                CDAR;
-                SENDER;
-                GET;
-                IF_SOME
-                  {}
-                  {
-                    PUSH int 169;
-                    FAILWITH;
-                  };
-                CDDAR;
-                SWAP;
-                DUP;
-                DUG 2;
-                CDDR;
-                COMPARE;
-                LE;
-              }
-              {
-                PUSH bool False;
-              };
+            LE;
             IF
               {
                 DUP;
-                CDDR;
+                CDR;
                 PUSH nat 0;
                 SWAP;
                 DIG 3;
                 DUP;
                 DUG 4;
-                CDAR;
+                CDDR;
                 SENDER;
                 GET;
                 IF_SOME
                   {}
                   {
-                    PUSH int 169;
+                    PUSH int 110;
                     FAILWITH;
                   };
                 CDDAR;
                 SUB;
                 ABS;
                 COMPARE;
-                GT;
+                GE;
               }
               {
                 PUSH bool False;
@@ -334,19 +302,19 @@ code
             IF
               {}
               {
-                PUSH string "WrongCondition: ((sp.now < self.data.sell_orders[sp.sender].timelock) & (params.tk_amount <= self.data.sell_orders[sp.sender].tk_amount)) & ((abs(self.data.sell_orders[sp.sender].tk_amount - params.tk_amount)) > 0)";
+                PUSH string "WrongCondition: (sp.now <= self.data.sell_orders[sp.sender].timeframe) & ((abs(self.data.sell_orders[sp.sender].tk_amount - params.tk_amount)) >= 0)";
                 FAILWITH;
               };
             NIL operation;
             DIG 2;
             DUP;
             DUG 3;
-            CAAR;
+            CAR;
             CONTRACT %transfer (list (pair (address %from_) (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount))))));
             IF_SOME
               {}
               {
-                PUSH int 162;
+                PUSH int 103;
                 FAILWITH;
               };
             PUSH mutez 0;
@@ -355,17 +323,17 @@ code
             DIG 5;
             DUP;
             DUG 6;
-            CDDR;
+            CDR;
             DIG 7;
             DUP;
             DUG 8;
-            CDAR;
+            CDDR;
             SENDER;
             GET;
             IF_SOME
               {}
               {
-                PUSH int 170;
+                PUSH int 111;
                 FAILWITH;
               };
             CDDDR;
@@ -379,13 +347,13 @@ code
             DIG 6;
             DUP;
             DUG 7;
-            CDAR;
+            CDDR;
             SENDER;
             GET;
             IF_SOME
               {}
               {
-                PUSH int 170;
+                PUSH int 111;
                 FAILWITH;
               };
             CADR;
@@ -401,9 +369,9 @@ code
             SWAP;
             CDR;
             DUP;
-            CDR;
-            SWAP;
             CAR;
+            SWAP;
+            CDR;
             DUP;
             SENDER;
             DUP;
@@ -412,7 +380,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 171;
+                PUSH int 112;
                 FAILWITH;
               };
             DUP;
@@ -424,15 +392,15 @@ code
             SWAP;
             CDDR;
             DIG 8;
-            CDDR;
+            CDR;
             DIG 9;
-            CDAR;
+            CDDR;
             SENDER;
             GET;
             IF_SOME
               {}
               {
-                PUSH int 171;
+                PUSH int 112;
                 FAILWITH;
               };
             CDDAR;
@@ -446,6 +414,7 @@ code
             SOME;
             SWAP;
             UPDATE;
+            SWAP;
             PAIR;
             SWAP;
             PAIR;
@@ -453,7 +422,32 @@ code
           }
           {
             DROP;
+            DUP;
+            CDAR;
+            SENDER;
+            COMPARE;
+            EQ;
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: sp.sender == self.data.oracle";
+                FAILWITH;
+              };
+            DUP;
+            CDAR;
+            CONTRACT unit;
             NIL operation;
+            SWAP;
+            IF_SOME
+              {}
+              {
+                PUSH int 117;
+                FAILWITH;
+              };
+            BALANCE;
+            UNIT;
+            TRANSFER_TOKENS;
+            CONS;
           };
       };
     PAIR;

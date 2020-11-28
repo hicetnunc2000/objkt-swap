@@ -1,5 +1,7 @@
 ### objkt-swap
 
+v1 contains sell orders only and operator access must be given to KT1CZGNkppGBiEQRXbs1JyRSz7jEDNNBQFo9 
+
 ```
          __     /_/ __    ______           
   ____  / /__  __  / /__ /_  __/  
@@ -7,10 +9,9 @@
 /___/ /____/ / / /_/\_\  /_/    
            _/ /
           /__/  
-
 ```
 
-https://smartpy.io/ide?cid=QmQcZ3PXMP8dNSCWUq3ca3iAgXwARapb1NKLC86WA5g75w&k=a4f8532db3dcdf4e8819
+https://smartpy.io/ide?cid=QmTxQux7it45XFeMMDMr7KZVUSUZwgcHtCRiNanE1UsSxe&k=1a1be0f59d6bbc2b1ffe
 
 `
 MIT license
