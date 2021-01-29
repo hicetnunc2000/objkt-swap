@@ -1,0 +1,384 @@
+# @hicetnunc2000
+
+parameter (or (pair %curate (nat %objkt_amount) (pair (nat %objkt_id) (mutez %tz_per_objkt))) (or (pair %mint (address %address) (pair (nat %amount) (map %metadata string bytes))) (pair %swap_objkt (nat %objkt_amount) (pair (nat %objkt_id) (address %to_)))));
+storage   (pair (pair (big_map %curations address bool) (big_map %metadata string bytes)) (pair (nat %nft_counter) (address %objkt)));
+code
+  {
+    UNPAIR;
+    IF_LEFT
+      {
+        DUP;
+        CAR;
+        PUSH nat 0;
+        COMPARE;
+        LT;
+        IF
+          {}
+          {
+            PUSH string "WrongCondition: params.objkt_amount > 0";
+            FAILWITH;
+          };
+        DUP;
+        GET 4;
+        SELF;
+        ADDRESS;
+        PAIR;
+        PUSH bool False;
+        DUP 3;
+        GET 3;
+        PAIR;
+        PAIR;
+        SWAP;
+        DUP;
+        DUG 2;
+        CAR;
+        DUP 4;
+        GET 4;
+        PAIR;
+        SENDER;
+        PAIR;
+        PAIR;
+        PUSH mutez 0;
+        NONE key_hash;
+        CREATE_CONTRACT
+         { parameter (or (unit %collect) (unit %redeem_objkts));
+           storage   (pair (pair (address %issuer) (pair (address %objkt) (nat %objkt_amount))) (pair (pair (nat %objkt_id) (bool %paused)) (pair (address %protocol) (mutez %tz_per_objkt))));
+           code
+             {
+               UNPAIR;
+               IF_LEFT
+                 {
+                   DROP;
+                   DUP;
+                   CDR;
+                   CAR;
+                   CDR;
+                   IF
+                     {
+                       PUSH string "WrongCondition: ~ self.data.paused";
+                       FAILWITH;
+                     }
+                     {};
+                   DUP;
+                   GET 5;
+                   CONTRACT %swap_objkt (pair (nat %objkt_amount) (pair (nat %objkt_id) (address %to_)));
+                   IF_SOME
+                     {}
+                     {
+                       PUSH int 678;
+                       FAILWITH;
+                     };
+                   NIL operation;
+                   SWAP;
+                   PUSH mutez 0;
+                   SENDER;
+                   DUP 5;
+                   CDR;
+                   CAR;
+                   CAR;
+                   PAIR;
+                   DUP 5;
+                   GET 6;
+                   AMOUNT;
+                   EDIV;
+                   IF_SOME
+                     {}
+                     {
+                       PUSH int 679;
+                       FAILWITH;
+                     };
+                   CAR;
+                   PAIR;
+                   TRANSFER_TOKENS;
+                   CONS;
+                   SWAP;
+                   DUP;
+                   DUG 2;
+                   CAR;
+                   CAR;
+                   CONTRACT unit;
+                   IF_SOME
+                     {}
+                     {
+                       PUSH int 681;
+                       FAILWITH;
+                     };
+                   AMOUNT;
+                   UNIT;
+                   TRANSFER_TOKENS;
+                   CONS;
+                   SWAP;
+                   DUP;
+                   DUG 2;
+                   UNPAIR;
+                   DUP;
+                   CAR;
+                   SWAP;
+                   GET 3;
+                   DUP 5;
+                   GET 6;
+                   AMOUNT;
+                   EDIV;
+                   IF_SOME
+                     {}
+                     {
+                       PUSH int 683;
+                       FAILWITH;
+                     };
+                   CAR;
+                   DIG 5;
+                   CAR;
+                   CDR;
+                   CDR;
+                   SUB;
+                   ABS;
+                   SWAP;
+                   PAIR;
+                   SWAP;
+                   PAIR;
+                   PAIR;
+                   SWAP;
+                 }
+                 {
+                   DROP;
+                   DUP;
+                   CAR;
+                   CAR;
+                   SENDER;
+                   COMPARE;
+                   EQ;
+                   IF
+                     {
+                       DUP;
+                       CDR;
+                       CAR;
+                       CDR;
+                       NOT;
+                     }
+                     {
+                       PUSH bool False;
+                     };
+                   IF
+                     {}
+                     {
+                       PUSH string "WrongCondition: (sp.sender == self.data.issuer) & (~ self.data.paused)";
+                       FAILWITH;
+                     };
+                   DUP;
+                   CAR;
+                   CDR;
+                   CAR;
+                   CONTRACT %transfer (list (pair (address %from_) (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount))))));
+                   IF_SOME
+                     {}
+                     {
+                       PUSH int 688;
+                       FAILWITH;
+                     };
+                   NIL operation;
+                   SWAP;
+                   PUSH mutez 0;
+                   NIL (pair (address %from_) (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount)))));
+                   NIL (pair (address %to_) (pair (nat %token_id) (nat %amount)));
+                   DIG 5;
+                   DUP;
+                   CAR;
+                   CDR;
+                   CDR;
+                   SWAP;
+                   DUP;
+                   DUG 7;
+                   CDR;
+                   CAR;
+                   CAR;
+                   PAIR;
+                   SENDER;
+                   PAIR;
+                   CONS;
+                   SELF;
+                   ADDRESS;
+                   PAIR;
+                   CONS;
+                   TRANSFER_TOKENS;
+                   CONS;
+                   SWAP;
+                   UNPAIR;
+                   SWAP;
+                   DUP;
+                   CDR;
+                   SWAP;
+                   CAR;
+                   CAR;
+                   PUSH bool True;
+                   SWAP;
+                   PAIR;
+                   PAIR;
+                   SWAP;
+                   PAIR;
+                   SWAP;
+                 };
+               NIL operation;
+               SWAP;
+               ITER
+                 {
+                   CONS;
+                 };
+               PAIR;
+             }};
+        PAIR;
+        DUP;
+        CAR;
+        NIL operation;
+        SWAP;
+        CONS;
+        DUP 4;
+        GET 4;
+        CONTRACT %transfer (list (pair (address %from_) (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount))))));
+        IF_SOME
+          {}
+          {
+            PUSH int 763;
+            FAILWITH;
+          };
+        PUSH mutez 0;
+        NIL (pair (address %from_) (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount)))));
+        NIL (pair (address %to_) (pair (nat %token_id) (nat %amount)));
+        DIG 6;
+        DUP;
+        CAR;
+        SWAP;
+        GET 3;
+        PAIR;
+        DUP 7;
+        CDR;
+        SOME;
+        IF_SOME
+          {}
+          {
+            PUSH int 746;
+            FAILWITH;
+          };
+        PAIR;
+        CONS;
+        SENDER;
+        PAIR;
+        CONS;
+        TRANSFER_TOKENS;
+        CONS;
+        DIG 2;
+        UNPAIR;
+        UNPAIR;
+        DIG 4;
+        CDR;
+        SOME;
+        IF_SOME
+          {}
+          {
+            PUSH int 746;
+            FAILWITH;
+          };
+        PUSH (option bool) (Some True);
+        SWAP;
+        UPDATE;
+        PAIR;
+        PAIR;
+        SWAP;
+      }
+      {
+        IF_LEFT
+          {
+            NIL operation;
+            DUP 3;
+            GET 4;
+            CONTRACT %mint (pair (pair (address %address) (nat %amount)) (pair (nat %token_id) (map %token_metadata_map string bytes)));
+            IF_SOME
+              {}
+              {
+                PUSH int 719;
+                FAILWITH;
+              };
+            PUSH mutez 0;
+            DUP 4;
+            GET 4;
+            DUP 6;
+            GET 3;
+            PAIR;
+            DIG 4;
+            DUP;
+            GET 3;
+            SWAP;
+            CAR;
+            PAIR;
+            PAIR;
+            TRANSFER_TOKENS;
+            CONS;
+            SWAP;
+            UNPAIR;
+            SWAP;
+            UNPAIR;
+            PUSH nat 1;
+            ADD;
+            PAIR;
+            SWAP;
+            PAIR;
+            SWAP;
+          }
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            CAR;
+            CAR;
+            SENDER;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH bool False;
+              };
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: self.data.curations.get(sp.sender, default_value = False)";
+                FAILWITH;
+              };
+            NIL operation;
+            DUP 3;
+            GET 4;
+            CONTRACT %transfer (list (pair (address %from_) (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount))))));
+            IF_SOME
+              {}
+              {
+                PUSH int 763;
+                FAILWITH;
+              };
+            PUSH mutez 0;
+            NIL (pair (address %from_) (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount)))));
+            NIL (pair (address %to_) (pair (nat %token_id) (nat %amount)));
+            DIG 5;
+            DUP;
+            CAR;
+            SWAP;
+            DUP;
+            DUG 7;
+            GET 3;
+            PAIR;
+            DIG 6;
+            GET 4;
+            PAIR;
+            CONS;
+            SENDER;
+            PAIR;
+            CONS;
+            TRANSFER_TOKENS;
+            CONS;
+          };
+      };
+    NIL operation;
+    SWAP;
+    ITER
+      {
+        CONS;
+      };
+    PAIR;
+  };
