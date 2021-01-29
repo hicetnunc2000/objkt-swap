@@ -1,7 +1,4 @@
 ### objkt-swap
-
-v1 contains sell orders only and operator access must be given to KT1CZGNkppGBiEQRXbs1JyRSz7jEDNNBQFo9 
-
 ```
          __     /_/ __    ______           
   ____  / /__  __  / /__ /_  __/  
@@ -10,9 +7,7 @@ v1 contains sell orders only and operator access must be given to KT1CZGNkppGBiE
            _/ /
           /__/  
 ```
-
-https://smartpy.io/ide?cid=QmTxQux7it45XFeMMDMr7KZVUSUZwgcHtCRiNanE1UsSxe&k=1a1be0f59d6bbc2b1ffe
-
+v1 smart contract architecture contains curations and $xtz:objkt swaps [KT1XfJfpgk6SPBfZhfYbeszwPnnepBTjfRNF](https://better-call.dev/mainnet/KT1XfJfpgk6SPBfZhfYbeszwPnnepBTjfRNF)
 `
 MIT license
 `
