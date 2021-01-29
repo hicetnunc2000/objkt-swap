@@ -7,7 +7,7 @@
            _/ /
           /__/  
 ```
-v1 smart contract architecture contains curations and $xtz:objkt swaps [KT1XfJfpgk6SPBfZhfYbeszwPnnepBTjfRNF](https://better-call.dev/mainnet/KT1XfJfpgk6SPBfZhfYbeszwPnnepBTjfRNF)
+v1 smart contract architecture contains curations and $xtz:objkt swaps [KT1PAV4ayvsDYi9zBFsLepnkPkpEspeYefNX](https://better-call.dev/mainnet/KT1PAV4ayvsDYi9zBFsLepnkPkpEspeYefNX)
 ```
 MIT license
 ```
