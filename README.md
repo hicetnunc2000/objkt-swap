@@ -1,6 +1,6 @@
 ### objkt-swap
 
-v1 contains sell orders only and operator access must be given to KT1CZGNkppGBiEQRXbs1JyRSz7jEDNNBQFo9 
+v2 contains sell orders only implementing xtz:(FA2)[https://gitlab.com/tzip/tzip/-/blob/master/proposals/tzip-12/tzip-12.md] swaps
 
 ```
          __     /_/ __    ______           
