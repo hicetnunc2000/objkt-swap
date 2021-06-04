@@ -1,0 +1,27 @@
+parameter (or (unit %revert) (unit %sign));
+storage   (pair (big_map %metadata string bytes) (big_map %signatures address bool));
+code
+  {
+    UNPAIR;
+    IF_LEFT
+      {
+        DROP;
+        DUP;
+        CDR;
+        NONE bool;
+        SENDER;
+        UPDATE;
+        UPDATE 2;
+      }
+      {
+        DROP;
+        DUP;
+        CDR;
+        PUSH (option bool) (Some True);
+        SENDER;
+        UPDATE;
+        UPDATE 2;
+      };
+    NIL operation;
+    PAIR;
+  };

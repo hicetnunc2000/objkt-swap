@@ -1,5 +1,5 @@
-parameter (or (or (pair %balance_of (list %requests (pair (address %owner) (nat %token_id))) (contract %callback (list (pair (pair %request (address %owner) (nat %token_id)) (nat %balance))))) (or (pair %mint (pair (address %address) (nat %amount)) (pair (nat %token_id) (map %token_metadata_map string bytes))) (address %set_administrator))) (or (or (bool %set_pause) (pair %token_metadata (list %token_ids nat) (lambda %handler (list (pair (nat %token_id) (map %token_metadata_map string bytes))) unit))) (or (list %transfer (pair (address %from_) (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount)))))) (list %update_operators (or (pair %add_operator (address %owner) (pair (address %operator) (nat %token_id))) (pair %remove_operator (address %owner) (pair (address %operator) (nat %token_id))))))));
-storage   (pair (pair (address %administrator) (pair (nat %all_tokens) (big_map %ledger (pair address nat) nat))) (pair (pair (big_map %metadata string bytes) (big_map %operators (pair (address %owner) (pair (address %operator) (nat %token_id))) unit)) (pair (bool %paused) (big_map %token_metadata nat (pair (nat %token_id) (map %token_metadata_map string bytes))))));
+parameter (or (or (or (pair %balance_of (list %requests (pair (address %owner) (nat %token_id))) (contract %callback (list (pair (pair %request (address %owner) (nat %token_id)) (nat %balance))))) (list %hDAO_batch (pair (nat %amount) (address %to_)))) (or (pair %mint (pair (address %address) (nat %amount)) (pair (nat %token_id) (map %token_info string bytes))) (address %set_administrator))) (or (or (bool %set_pause) (pair %token_metadata (list %token_ids nat) (lambda %handler (list (pair (nat %token_id) (map %token_info string bytes))) unit))) (or (list %transfer (pair (address %from_) (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount)))))) (list %update_operators (or (pair %add_operator (address %owner) (pair (address %operator) (nat %token_id))) (pair %remove_operator (address %owner) (pair (address %operator) (nat %token_id))))))));
+storage   (pair (pair (address %administrator) (pair (nat %all_tokens) (big_map %ledger (pair address nat) nat))) (pair (pair (big_map %metadata string bytes) (big_map %operators (pair (address %owner) (pair (address %operator) (nat %token_id))) unit)) (pair (bool %paused) (big_map %token_metadata nat (pair (nat %token_id) (map %token_info string bytes))))));
 code
   {
     UNPAIR;
@@ -7,52 +7,38 @@ code
       {
         IF_LEFT
           {
-            SWAP;
-            DUP;
-            DUG 2;
-            GET 5;
-            IF
+            IF_LEFT
               {
-                PUSH int 478;
-                FAILWITH;
-              }
-              {};
-            DUP;
-            CAR;
-            MAP
-              {
-                DUP 3;
-                GET 6;
                 SWAP;
                 DUP;
                 DUG 2;
-                CDR;
-                MEM;
+                GET 5;
                 IF
-                  {}
                   {
-                    PUSH string "FA2_TOKEN_UNDEFINED";
+                    PUSH string "WrongCondition: ~ self.data.paused";
                     FAILWITH;
-                  };
-                DUP 3;
-                CAR;
-                CDR;
-                CDR;
-                SWAP;
+                  }
+                  {};
                 DUP;
-                CDR;
-                SWAP;
-                DUP;
-                DUG 3;
                 CAR;
-                PAIR;
-                MEM;
-                IF
+                MAP
                   {
                     DUP 3;
+                    GET 6;
+                    SWAP;
+                    DUP;
+                    DUG 2;
+                    CDR;
+                    MEM;
+                    IF
+                      {}
+                      {
+                        PUSH string "FA2_TOKEN_UNDEFINED";
+                        FAILWITH;
+                      };
+                    DUP 3;
                     CAR;
-                    CDR;
-                    CDR;
+                    GET 4;
                     SWAP;
                     DUP;
                     CDR;
@@ -61,29 +47,157 @@ code
                     DUG 3;
                     CAR;
                     PAIR;
-                    GET;
-                    IF_SOME
-                      {}
+                    MEM;
+                    IF
                       {
-                        PUSH int 485;
-                        FAILWITH;
+                        DUP 3;
+                        CAR;
+                        GET 4;
+                        SWAP;
+                        DUP;
+                        CDR;
+                        SWAP;
+                        DUP;
+                        DUG 3;
+                        CAR;
+                        PAIR;
+                        GET;
+                        IF_SOME
+                          {}
+                          {
+                            PUSH int 871;
+                            FAILWITH;
+                          };
+                        SWAP;
+                        PAIR;
+                      }
+                      {
+                        PUSH nat 0;
+                        SWAP;
+                        PAIR;
+                      };
+                  };
+                NIL operation;
+                DIG 2;
+                CDR;
+                PUSH mutez 0;
+                DIG 3;
+                TRANSFER_TOKENS;
+                CONS;
+              }
+              {
+                SWAP;
+                DUP;
+                DUG 2;
+                CAR;
+                CAR;
+                SENDER;
+                COMPARE;
+                EQ;
+                IF
+                  {}
+                  {
+                    PUSH string "WrongCondition: sp.sender == self.data.administrator";
+                    FAILWITH;
+                  };
+                DUP;
+                ITER
+                  {
+                    DUP 3;
+                    CAR;
+                    GET 4;
+                    PUSH nat 0;
+                    DUP 3;
+                    CDR;
+                    PAIR;
+                    MEM;
+                    IF
+                      {
+                        DIG 2;
+                        UNPAIR;
+                        UNPAIR;
+                        SWAP;
+                        UNPAIR;
+                        SWAP;
+                        DUP;
+                        PUSH nat 0;
+                        DUP 7;
+                        CDR;
+                        PAIR;
+                        DUP;
+                        DUG 2;
+                        GET;
+                        IF_SOME
+                          {}
+                          {
+                            PUSH int 923;
+                            FAILWITH;
+                          };
+                        DIG 6;
+                        CAR;
+                        ADD;
+                        SOME;
+                        SWAP;
+                        UPDATE;
+                        SWAP;
+                        PAIR;
+                        SWAP;
+                        PAIR;
+                        PAIR;
+                        SWAP;
+                      }
+                      {
+                        DIG 2;
+                        UNPAIR;
+                        UNPAIR;
+                        SWAP;
+                        UNPAIR;
+                        SWAP;
+                        DUP 5;
+                        CAR;
+                        SOME;
+                        PUSH nat 0;
+                        DIG 6;
+                        CDR;
+                        PAIR;
+                        UPDATE;
+                        SWAP;
+                        PAIR;
+                        SWAP;
+                        PAIR;
+                        PAIR;
+                        SWAP;
                       };
                     SWAP;
-                    PAIR;
-                  }
-                  {
+                    DUP;
+                    DUG 2;
+                    GET 6;
                     PUSH nat 0;
-                    SWAP;
-                    PAIR;
+                    MEM;
+                    IF
+                      {}
+                      {
+                        SWAP;
+                        DUP;
+                        GET 6;
+                        EMPTY_MAP string bytes;
+                        PUSH string "ipfs://QmSVsfwH8es7Ur2eqto9hVpcd2dfWASmEaNxTPpcymuJzg";
+                        PACK;
+                        SOME;
+                        PUSH string "";
+                        UPDATE;
+                        PUSH nat 0;
+                        PAIR;
+                        SOME;
+                        PUSH nat 0;
+                        UPDATE;
+                        UPDATE 6;
+                        SWAP;
+                      };
                   };
+                DROP;
+                NIL operation;
               };
-            NIL operation;
-            DIG 2;
-            CDR;
-            PUSH mutez 0;
-            DIG 3;
-            TRANSFER_TOKENS;
-            CONS;
           }
           {
             IF_LEFT
@@ -99,21 +213,19 @@ code
                 IF
                   {}
                   {
-                    PUSH int 559;
+                    PUSH string "WrongCondition: sp.sender == self.data.administrator";
                     FAILWITH;
                   };
                 SWAP;
                 DUP;
                 DUG 2;
                 UNPAIR;
-                DUP;
-                CAR;
+                UNPAIR;
                 SWAP;
-                GET 4;
+                CDR;
                 DIG 4;
                 CAR;
-                CDR;
-                CAR;
+                GET 3;
                 DUP;
                 PUSH nat 1;
                 DUP 7;
@@ -138,8 +250,7 @@ code
                 DUP;
                 DUG 2;
                 CAR;
-                CDR;
-                CDR;
+                GET 4;
                 SWAP;
                 DUP;
                 GET 3;
@@ -153,8 +264,6 @@ code
                 IF
                   {
                     SWAP;
-                    DUP;
-                    DUG 2;
                     UNPAIR;
                     UNPAIR;
                     SWAP;
@@ -174,36 +283,14 @@ code
                     DUG 2;
                     GET;
                     IF_SOME
-                      {
-                        DROP;
-                      }
-                      {
-                        PUSH int 571;
-                        FAILWITH;
-                      };
-                    DUP 6;
-                    CAR;
-                    CDR;
-                    DIG 7;
-                    CAR;
-                    CDR;
-                    CDR;
-                    DIG 7;
-                    DUP;
-                    GET 3;
-                    SWAP;
-                    DUP;
-                    DUG 9;
-                    CAR;
-                    CAR;
-                    PAIR;
-                    GET;
-                    IF_SOME
                       {}
                       {
-                        PUSH int 571;
+                        PUSH int 974;
                         FAILWITH;
                       };
+                    DUP 7;
+                    CAR;
+                    CDR;
                     ADD;
                     SOME;
                     SWAP;
@@ -222,20 +309,19 @@ code
                     SWAP;
                     UNPAIR;
                     SWAP;
-                    DIG 4;
+                    DUP 5;
+                    CAR;
+                    CDR;
+                    SOME;
+                    DIG 5;
                     DUP;
                     GET 3;
                     SWAP;
                     DUP;
-                    DUG 6;
+                    DUG 7;
                     CAR;
                     CAR;
                     PAIR;
-                    DUP 6;
-                    CAR;
-                    CDR;
-                    SOME;
-                    SWAP;
                     UPDATE;
                     SWAP;
                     PAIR;
@@ -259,30 +345,21 @@ code
                   }
                   {
                     SWAP;
-                    UNPAIR;
-                    SWAP;
-                    UNPAIR;
-                    SWAP;
-                    UNPAIR;
-                    SWAP;
-                    DIG 4;
                     DUP;
-                    GET 3;
-                    SWAP;
+                    GET 6;
+                    DIG 2;
                     DUP;
                     GET 4;
                     SWAP;
+                    DUP;
+                    DUG 4;
                     GET 3;
                     PAIR;
                     SOME;
-                    SWAP;
+                    DIG 3;
+                    GET 3;
                     UPDATE;
-                    SWAP;
-                    PAIR;
-                    SWAP;
-                    PAIR;
-                    SWAP;
-                    PAIR;
+                    UPDATE 6;
                   };
               }
               {
@@ -297,14 +374,11 @@ code
                 IF
                   {}
                   {
-                    PUSH int 544;
+                    PUSH string "WrongCondition: sp.sender == self.data.administrator";
                     FAILWITH;
                   };
                 SWAP;
-                DUP;
-                CDR;
-                SWAP;
-                CAR;
+                UNPAIR;
                 CDR;
                 DIG 2;
                 PAIR;
@@ -329,22 +403,10 @@ code
                 IF
                   {}
                   {
-                    PUSH int 553;
+                    PUSH string "WrongCondition: sp.sender == self.data.administrator";
                     FAILWITH;
                   };
-                SWAP;
-                UNPAIR;
-                SWAP;
-                DUP;
-                CAR;
-                SWAP;
-                GET 4;
-                DIG 3;
-                PAIR;
-                SWAP;
-                PAIR;
-                SWAP;
-                PAIR;
+                UPDATE 5;
               }
               {
                 SWAP;
@@ -353,7 +415,7 @@ code
                 GET 5;
                 IF
                   {
-                    PUSH int 594;
+                    PUSH string "WrongCondition: ~ self.data.paused";
                     FAILWITH;
                   }
                   {};
@@ -372,7 +434,7 @@ code
                     IF_SOME
                       {}
                       {
-                        PUSH int 604;
+                        PUSH int 1007;
                         FAILWITH;
                       };
                   };
@@ -391,7 +453,7 @@ code
                 GET 5;
                 IF
                   {
-                    PUSH int 435;
+                    PUSH string "WrongCondition: ~ self.data.paused";
                     FAILWITH;
                   }
                   {};
@@ -425,18 +487,16 @@ code
                           }
                           {
                             DUP 4;
-                            CDR;
-                            CAR;
+                            GET 3;
                             CDR;
                             SWAP;
                             DUP;
                             DUG 2;
                             GET 3;
                             SENDER;
-                            PAIR;
-                            DUP 4;
+                            DUP 5;
                             CAR;
-                            PAIR;
+                            PAIR 3;
                             MEM;
                           };
                         IF
@@ -469,8 +529,7 @@ code
                             GET 4;
                             DUP 5;
                             CAR;
-                            CDR;
-                            CDR;
+                            GET 4;
                             DUP 3;
                             GET 3;
                             DUP 5;
@@ -480,7 +539,7 @@ code
                             IF_SOME
                               {}
                               {
-                                PUSH int 462;
+                                PUSH int 848;
                                 FAILWITH;
                               };
                             COMPARE;
@@ -511,15 +570,14 @@ code
                                 DROP;
                               }
                               {
-                                PUSH int 466;
+                                PUSH int 852;
                                 FAILWITH;
                               };
                             DUP 6;
                             GET 4;
                             DIG 9;
                             CAR;
-                            CDR;
-                            CDR;
+                            GET 4;
                             DUP 8;
                             GET 3;
                             DUP 10;
@@ -529,7 +587,7 @@ code
                             IF_SOME
                               {}
                               {
-                                PUSH int 466;
+                                PUSH int 852;
                                 FAILWITH;
                               };
                             SUB;
@@ -537,7 +595,7 @@ code
                             IF_SOME
                               {}
                               {
-                                PUSH int 466;
+                                PUSH int 852;
                                 FAILWITH;
                               };
                             SOME;
@@ -551,8 +609,7 @@ code
                             DUP;
                             DUG 4;
                             CAR;
-                            CDR;
-                            CDR;
+                            GET 4;
                             SWAP;
                             DUP;
                             GET 3;
@@ -564,7 +621,7 @@ code
                             MEM;
                             IF
                               {
-                                DUP 4;
+                                DIG 3;
                                 UNPAIR;
                                 UNPAIR;
                                 SWAP;
@@ -583,32 +640,13 @@ code
                                 DUG 2;
                                 GET;
                                 IF_SOME
-                                  {
-                                    DROP;
-                                  }
-                                  {
-                                    PUSH int 469;
-                                    FAILWITH;
-                                  };
-                                DUP 6;
-                                GET 4;
-                                DIG 9;
-                                CAR;
-                                CDR;
-                                CDR;
-                                DIG 7;
-                                DUP;
-                                GET 3;
-                                SWAP;
-                                CAR;
-                                PAIR;
-                                GET;
-                                IF_SOME
                                   {}
                                   {
-                                    PUSH int 469;
+                                    PUSH int 855;
                                     FAILWITH;
                                   };
+                                DIG 6;
+                                GET 4;
                                 ADD;
                                 SOME;
                                 SWAP;
@@ -627,18 +665,15 @@ code
                                 SWAP;
                                 UNPAIR;
                                 SWAP;
-                                DIG 4;
+                                DUP 5;
+                                GET 4;
+                                SOME;
+                                DIG 5;
                                 DUP;
                                 GET 3;
                                 SWAP;
-                                DUP;
-                                DUG 6;
                                 CAR;
                                 PAIR;
-                                DIG 5;
-                                GET 4;
-                                SOME;
-                                SWAP;
                                 UPDATE;
                                 SWAP;
                                 PAIR;
@@ -682,7 +717,7 @@ code
                         IF
                           {}
                           {
-                            PUSH int 514;
+                            PUSH string "WrongCondition: (add_operator.owner == sp.sender) | (sp.sender == self.data.administrator)";
                             FAILWITH;
                           };
                         DIG 2;
@@ -691,19 +726,16 @@ code
                         UNPAIR;
                         UNPAIR;
                         SWAP;
-                        DIG 4;
+                        PUSH (option unit) (Some Unit);
+                        DIG 5;
                         DUP;
                         GET 4;
                         SWAP;
                         DUP;
-                        DUG 6;
                         GET 3;
-                        PAIR;
-                        DIG 5;
-                        CAR;
-                        PAIR;
-                        PUSH (option unit) (Some Unit);
                         SWAP;
+                        CAR;
+                        PAIR 3;
                         UPDATE;
                         SWAP;
                         PAIR;
@@ -733,7 +765,7 @@ code
                         IF
                           {}
                           {
-                            PUSH int 521;
+                            PUSH string "WrongCondition: (remove_operator.owner == sp.sender) | (sp.sender == self.data.administrator)";
                             FAILWITH;
                           };
                         DIG 2;
@@ -748,12 +780,10 @@ code
                         GET 4;
                         SWAP;
                         DUP;
-                        DUG 7;
                         GET 3;
-                        PAIR;
-                        DIG 6;
+                        SWAP;
                         CAR;
-                        PAIR;
+                        PAIR 3;
                         UPDATE;
                         SWAP;
                         PAIR;

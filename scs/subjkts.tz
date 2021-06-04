@@ -1,0 +1,355 @@
+parameter (or (or (pair %ban (address %address) (bytes %invoice)) (pair %registry (bytes %metadata) (bytes %subjkt))) (or (unit %unregistry) (address %update_manager)));
+storage   (pair (pair (big_map %entries address bool) (pair (big_map %invoices address (pair (bytes %invoice) (bytes %subjkt))) (address %manager))) (pair (pair (big_map %metadata string bytes) (big_map %registries address bytes)) (pair (big_map %subjkts bytes bool) (big_map %subjkts_metadata bytes bytes))));
+code
+  {
+    UNPAIR;
+    IF_LEFT
+      {
+        IF_LEFT
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            CAR;
+            GET 4;
+            SENDER;
+            COMPARE;
+            EQ;
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: sp.sender == self.data.manager";
+                FAILWITH;
+              };
+            SWAP;
+            DUP;
+            DUG 2;
+            UNPAIR;
+            UNPAIR;
+            SWAP;
+            UNPAIR;
+            DIG 5;
+            GET 3;
+            CDR;
+            DUP 6;
+            CAR;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 89;
+                FAILWITH;
+              };
+            DUP 6;
+            CDR;
+            PAIR;
+            SOME;
+            DUP 6;
+            CAR;
+            UPDATE;
+            PAIR;
+            SWAP;
+            NONE bool;
+            DUP 5;
+            CAR;
+            UPDATE;
+            PAIR;
+            PAIR;
+            DUP;
+            DUG 2;
+            DUP;
+            GET 5;
+            NONE bool;
+            DIG 4;
+            GET 3;
+            CDR;
+            DUP 5;
+            CAR;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 94;
+                FAILWITH;
+              };
+            UPDATE;
+            UPDATE 5;
+            DUP;
+            DUG 2;
+            DUP;
+            GET 6;
+            NONE bytes;
+            DIG 4;
+            GET 3;
+            CDR;
+            DUP 5;
+            CAR;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 95;
+                FAILWITH;
+              };
+            UPDATE;
+            UPDATE 6;
+            UNPAIR;
+            SWAP;
+            UNPAIR;
+            UNPAIR;
+            SWAP;
+            NONE bytes;
+            DIG 5;
+            CAR;
+            UPDATE;
+            SWAP;
+            PAIR;
+            PAIR;
+            SWAP;
+            PAIR;
+          }
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            GET 5;
+            SWAP;
+            DUP;
+            DUG 2;
+            CDR;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH bool False;
+              };
+            IF
+              {
+                DUP;
+                CDR;
+                DUP 3;
+                GET 3;
+                CDR;
+                SENDER;
+                GET;
+                IF_SOME
+                  {}
+                  {
+                    PUSH int 71;
+                    FAILWITH;
+                  };
+                COMPARE;
+                EQ;
+                IF
+                  {}
+                  {
+                    PUSH string "WrongCondition: self.data.registries[sp.sender] == params.subjkt";
+                    FAILWITH;
+                  };
+              }
+              {};
+            SWAP;
+            DUP;
+            DUG 2;
+            CAR;
+            CAR;
+            SENDER;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH bool False;
+              };
+            IF
+              {
+                SWAP;
+                UNPAIR;
+                UNPAIR;
+                NONE bool;
+                SENDER;
+                UPDATE;
+                PAIR;
+                PAIR;
+                DUP;
+                DUG 2;
+                DUP;
+                GET 5;
+                NONE bool;
+                DIG 4;
+                GET 3;
+                CDR;
+                SENDER;
+                GET;
+                IF_SOME
+                  {}
+                  {
+                    PUSH int 94;
+                    FAILWITH;
+                  };
+                UPDATE;
+                UPDATE 5;
+                DUP;
+                DUG 2;
+                DUP;
+                GET 6;
+                NONE bytes;
+                DIG 4;
+                GET 3;
+                CDR;
+                SENDER;
+                GET;
+                IF_SOME
+                  {}
+                  {
+                    PUSH int 95;
+                    FAILWITH;
+                  };
+                UPDATE;
+                UPDATE 6;
+                UNPAIR;
+                SWAP;
+                UNPAIR;
+                UNPAIR;
+                SWAP;
+                NONE bytes;
+                SENDER;
+                UPDATE;
+                SWAP;
+                PAIR;
+                PAIR;
+                SWAP;
+                PAIR;
+                SWAP;
+              }
+              {};
+            SWAP;
+            UNPAIR;
+            UNPAIR;
+            PUSH (option bool) (Some True);
+            SENDER;
+            UPDATE;
+            PAIR;
+            PAIR;
+            DUP;
+            GET 5;
+            PUSH (option bool) (Some True);
+            DUP 4;
+            CDR;
+            UPDATE;
+            UPDATE 5;
+            DUP;
+            GET 6;
+            DUP 3;
+            CAR;
+            SOME;
+            DUP 4;
+            CDR;
+            UPDATE;
+            UPDATE 6;
+            UNPAIR;
+            SWAP;
+            UNPAIR;
+            UNPAIR;
+            SWAP;
+            DIG 4;
+            CDR;
+            SOME;
+            SENDER;
+            UPDATE;
+            SWAP;
+            PAIR;
+            PAIR;
+            SWAP;
+            PAIR;
+          };
+      }
+      {
+        IF_LEFT
+          {
+            DROP;
+            UNPAIR;
+            UNPAIR;
+            NONE bool;
+            SENDER;
+            UPDATE;
+            PAIR;
+            PAIR;
+            DUP;
+            DUP;
+            GET 5;
+            NONE bool;
+            DIG 3;
+            GET 3;
+            CDR;
+            SENDER;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 94;
+                FAILWITH;
+              };
+            UPDATE;
+            UPDATE 5;
+            DUP;
+            DUP;
+            GET 6;
+            NONE bytes;
+            DIG 3;
+            GET 3;
+            CDR;
+            SENDER;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 95;
+                FAILWITH;
+              };
+            UPDATE;
+            UPDATE 6;
+            UNPAIR;
+            SWAP;
+            UNPAIR;
+            UNPAIR;
+            SWAP;
+            NONE bytes;
+            SENDER;
+            UPDATE;
+            SWAP;
+            PAIR;
+            PAIR;
+            SWAP;
+            PAIR;
+          }
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            CAR;
+            GET 4;
+            SENDER;
+            COMPARE;
+            EQ;
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: sp.sender == self.data.manager";
+                FAILWITH;
+              };
+            SWAP;
+            UNPAIR;
+            UNPAIR;
+            SWAP;
+            CAR;
+            DIG 3;
+            SWAP;
+            PAIR;
+            SWAP;
+            PAIR;
+            PAIR;
+          };
+      };
+    NIL operation;
+    PAIR;
+  };
