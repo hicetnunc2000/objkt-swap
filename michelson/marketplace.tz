@@ -1,0 +1,686 @@
+parameter (or (or (nat %cancel_swap) (nat %collect)) (or (pair %swap (pair (address %creator) (nat %objkt_amount)) (pair (nat %objkt_id) (pair (nat %royalties) (mutez %xtz_per_objkt)))) (address %update_manager)));
+storage   (pair (pair (nat %counter) (address %manager)) (pair (big_map %metadata string bytes) (pair (address %objkt) (big_map %swaps nat (pair (pair (address %creator) (pair (address %issuer) (nat %objkt_amount))) (pair (nat %objkt_id) (pair (nat %royalties) (mutez %xtz_per_objkt))))))));
+code
+  {
+    UNPAIR;
+    IF_LEFT
+      {
+        IF_LEFT
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            GET 6;
+            SWAP;
+            DUP;
+            DUG 2;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 313;
+                FAILWITH;
+              };
+            CAR;
+            GET 3;
+            SENDER;
+            COMPARE;
+            EQ;
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: sp.sender == self.data.swaps[params].issuer";
+                FAILWITH;
+              };
+            NIL operation;
+            DUP 3;
+            GET 5;
+            CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
+            IF_SOME
+              {}
+              {
+                PUSH int 323;
+                FAILWITH;
+              };
+            PUSH mutez 0;
+            NIL (pair address (list (pair address (pair nat nat))));
+            NIL (pair address (pair nat nat));
+            DUP 7;
+            GET 6;
+            DUP 7;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 314;
+                FAILWITH;
+              };
+            CAR;
+            GET 4;
+            DUP 8;
+            GET 6;
+            DUP 8;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 314;
+                FAILWITH;
+              };
+            GET 3;
+            SENDER;
+            PAIR 3;
+            CONS;
+            SELF_ADDRESS;
+            PAIR;
+            CONS;
+            TRANSFER_TOKENS;
+            CONS;
+            DIG 2;
+            DUP;
+            GET 6;
+            NONE (pair (pair address (pair address nat)) (pair nat (pair nat mutez)));
+            DIG 4;
+            UPDATE;
+            UPDATE 6;
+            SWAP;
+          }
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            GET 6;
+            SWAP;
+            DUP;
+            DUG 2;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 289;
+                FAILWITH;
+              };
+            GET 6;
+            AMOUNT;
+            COMPARE;
+            EQ;
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: sp.amount == self.data.swaps[params.swap_id].xtz_per_objkt";
+                FAILWITH;
+              };
+            NIL operation;
+            DUP 3;
+            GET 5;
+            CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
+            IF_SOME
+              {}
+              {
+                PUSH int 323;
+                FAILWITH;
+              };
+            PUSH mutez 0;
+            NIL (pair address (list (pair address (pair nat nat))));
+            NIL (pair address (pair nat nat));
+            PUSH nat 1;
+            DUP 8;
+            GET 6;
+            DUP 8;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 290;
+                FAILWITH;
+              };
+            GET 3;
+            SENDER;
+            PAIR 3;
+            CONS;
+            SELF_ADDRESS;
+            PAIR;
+            CONS;
+            TRANSFER_TOKENS;
+            CONS;
+            DUP 3;
+            GET 6;
+            DUP 3;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 298;
+                FAILWITH;
+              };
+            CAR;
+            CAR;
+            CONTRACT unit;
+            IF_SOME
+              {}
+              {
+                PUSH int 298;
+                FAILWITH;
+              };
+            PUSH mutez 1;
+            PUSH nat 25;
+            DUP 6;
+            GET 6;
+            DUP 6;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 295;
+                FAILWITH;
+              };
+            GET 5;
+            ADD;
+            PUSH nat 1000;
+            PUSH nat 25;
+            DUP 8;
+            GET 6;
+            DUP 8;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            GET 5;
+            ADD;
+            PUSH mutez 1;
+            PUSH nat 1;
+            MUL;
+            PUSH mutez 1;
+            DUP;
+            DUP 11;
+            GET 6;
+            DUP 11;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 292;
+                FAILWITH;
+              };
+            GET 6;
+            EDIV;
+            IF_SOME
+              {}
+              {
+                PUSH int 292;
+                FAILWITH;
+              };
+            CAR;
+            MUL;
+            EDIV;
+            IF_SOME
+              {}
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            CAR;
+            MUL;
+            EDIV;
+            IF_SOME
+              {
+                CAR;
+              }
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            DUP 7;
+            GET 6;
+            DUP 7;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 295;
+                FAILWITH;
+              };
+            GET 5;
+            MUL;
+            EDIV;
+            IF_SOME
+              {
+                CAR;
+              }
+              {
+                PUSH int 295;
+                FAILWITH;
+              };
+            MUL;
+            UNIT;
+            TRANSFER_TOKENS;
+            CONS;
+            DUP 3;
+            CAR;
+            CDR;
+            CONTRACT unit;
+            IF_SOME
+              {}
+              {
+                PUSH int 301;
+                FAILWITH;
+              };
+            PUSH mutez 1;
+            PUSH nat 25;
+            DUP 6;
+            GET 6;
+            DUP 6;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 295;
+                FAILWITH;
+              };
+            GET 5;
+            ADD;
+            PUSH nat 1000;
+            PUSH nat 25;
+            DUP 8;
+            GET 6;
+            DUP 8;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            GET 5;
+            ADD;
+            PUSH mutez 1;
+            PUSH nat 1;
+            MUL;
+            PUSH mutez 1;
+            DUP;
+            DUP 11;
+            GET 6;
+            DUP 11;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 292;
+                FAILWITH;
+              };
+            GET 6;
+            EDIV;
+            IF_SOME
+              {}
+              {
+                PUSH int 292;
+                FAILWITH;
+              };
+            CAR;
+            MUL;
+            EDIV;
+            IF_SOME
+              {}
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            CAR;
+            MUL;
+            EDIV;
+            IF_SOME
+              {
+                CAR;
+              }
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            DUP 7;
+            GET 6;
+            DUP 7;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 295;
+                FAILWITH;
+              };
+            GET 5;
+            MUL;
+            EDIV;
+            IF_SOME
+              {
+                CAR;
+              }
+              {
+                PUSH int 295;
+                FAILWITH;
+              };
+            PUSH nat 1000;
+            PUSH nat 25;
+            DUP 8;
+            GET 6;
+            DUP 8;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            GET 5;
+            ADD;
+            PUSH mutez 1;
+            PUSH nat 1;
+            MUL;
+            PUSH mutez 1;
+            DUP;
+            DUP 11;
+            GET 6;
+            DUP 11;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 292;
+                FAILWITH;
+              };
+            GET 6;
+            EDIV;
+            IF_SOME
+              {}
+              {
+                PUSH int 292;
+                FAILWITH;
+              };
+            CAR;
+            MUL;
+            EDIV;
+            IF_SOME
+              {}
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            CAR;
+            MUL;
+            EDIV;
+            IF_SOME
+              {
+                CAR;
+              }
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            SUB;
+            ABS;
+            MUL;
+            UNIT;
+            TRANSFER_TOKENS;
+            CONS;
+            DUP 3;
+            GET 6;
+            DUP 3;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 304;
+                FAILWITH;
+              };
+            CAR;
+            GET 3;
+            CONTRACT unit;
+            IF_SOME
+              {}
+              {
+                PUSH int 304;
+                FAILWITH;
+              };
+            PUSH mutez 1;
+            PUSH nat 1000;
+            PUSH nat 25;
+            DUP 7;
+            GET 6;
+            DUP 7;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            GET 5;
+            ADD;
+            PUSH mutez 1;
+            PUSH nat 1;
+            MUL;
+            PUSH mutez 1;
+            DUP;
+            DUP 10;
+            GET 6;
+            DUP 10;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 292;
+                FAILWITH;
+              };
+            GET 6;
+            EDIV;
+            IF_SOME
+              {}
+              {
+                PUSH int 292;
+                FAILWITH;
+              };
+            CAR;
+            MUL;
+            EDIV;
+            IF_SOME
+              {}
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            CAR;
+            MUL;
+            EDIV;
+            IF_SOME
+              {
+                CAR;
+              }
+              {
+                PUSH int 294;
+                FAILWITH;
+              };
+            MUL;
+            AMOUNT;
+            SUB;
+            UNIT;
+            TRANSFER_TOKENS;
+            CONS;
+            DUP 3;
+            DUP;
+            GET 6;
+            DUP;
+            DUP 5;
+            DUP;
+            DUG 2;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 306;
+                FAILWITH;
+              };
+            UNPAIR;
+            UNPAIR;
+            SWAP;
+            CAR;
+            PUSH nat 1;
+            DIG 9;
+            GET 6;
+            DUP 10;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 306;
+                FAILWITH;
+              };
+            CAR;
+            GET 4;
+            SUB;
+            ABS;
+            SWAP;
+            PAIR;
+            SWAP;
+            PAIR;
+            PAIR;
+            SOME;
+            SWAP;
+            UPDATE;
+            UPDATE 6;
+            DUG 2;
+            PUSH nat 0;
+            DUP 4;
+            GET 6;
+            DUP 4;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH int 308;
+                FAILWITH;
+              };
+            CAR;
+            GET 4;
+            COMPARE;
+            EQ;
+            IF
+              {
+                DIG 2;
+                DUP;
+                GET 6;
+                NONE (pair (pair address (pair address nat)) (pair nat (pair nat mutez)));
+                DIG 4;
+                UPDATE;
+                UPDATE 6;
+                SWAP;
+              }
+              {
+                SWAP;
+                DROP;
+              };
+          };
+      }
+      {
+        IF_LEFT
+          {
+            NIL operation;
+            DUP 3;
+            GET 5;
+            CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
+            IF_SOME
+              {}
+              {
+                PUSH int 323;
+                FAILWITH;
+              };
+            PUSH mutez 0;
+            NIL (pair address (list (pair address (pair nat nat))));
+            NIL (pair address (pair nat nat));
+            DIG 5;
+            DUP;
+            CAR;
+            CDR;
+            SWAP;
+            DUP;
+            DUG 7;
+            GET 3;
+            SELF_ADDRESS;
+            PAIR 3;
+            CONS;
+            SENDER;
+            PAIR;
+            CONS;
+            TRANSFER_TOKENS;
+            CONS;
+            DUP 3;
+            DUP;
+            GET 6;
+            DIG 3;
+            DUP;
+            GET 6;
+            SWAP;
+            DUP;
+            DUG 5;
+            GET 5;
+            PAIR;
+            DUP 5;
+            GET 3;
+            PAIR;
+            DUP 5;
+            CAR;
+            CDR;
+            SENDER;
+            PAIR;
+            DIG 5;
+            CAR;
+            CAR;
+            PAIR;
+            PAIR;
+            SOME;
+            DIG 4;
+            CAR;
+            CAR;
+            UPDATE;
+            UPDATE 6;
+            UNPAIR;
+            UNPAIR;
+            PUSH nat 1;
+            ADD;
+            PAIR;
+            PAIR;
+            SWAP;
+          }
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            CAR;
+            CDR;
+            SENDER;
+            COMPARE;
+            EQ;
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: sp.sender == self.data.manager";
+                FAILWITH;
+              };
+            SWAP;
+            UNPAIR;
+            CAR;
+            DIG 2;
+            SWAP;
+            PAIR;
+            PAIR;
+            NIL operation;
+          };
+      };
+    NIL operation;
+    SWAP;
+    ITER
+      {
+        CONS;
+      };
+    PAIR;
+  };
