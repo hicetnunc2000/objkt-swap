@@ -163,7 +163,9 @@ class OBJKTSwap(sp.Contract):
             params.objkt_amount
         )
 
-        self.data.swaps[params.swap_id].objkt_amount = abs(self.data.swaps[params.swap_id].objkt_amount - params.objkt_amount)
+        self.data.swaps[params.swap_id].objkt_amount = abs(
+            self.data.swaps[params.swap_id].objkt_amount - params.objkt_amount
+        )
 
         sp.if (self.data.swaps[params.swap_id].objkt_amount == 0):
             del self.data.swaps[params.swap_id]
@@ -171,11 +173,15 @@ class OBJKTSwap(sp.Contract):
     @sp.entry_point
     def mint_OBJKT(self, params):
         sp.verify(
+            # at least 1 objkt
             (params.amount > 0) &
             (
                 (params.royalties >= 0) &
+                # max royalty
+                # 250 is actually 25.0%
                 (params.royalties <= 250)
             ) &
+            # at most 10k objkts
             (params.amount <= 10000)
         )
 
