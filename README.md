@@ -20,7 +20,7 @@ Hic et Nunc Minter: https://better-call.dev/mainnet/KT1Hkg5qeNhfwpKW4fXvq7HGZB9z
 OBJKTs: https://better-call.dev/mainnet/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton
 SUBJKTs: https://better-call.dev/mainnet/KT1My1wDZHDGweCrJnQJi3wcFaS67iksirvj
 Hic et nunc Unregistry: https://better-call.dev/mainnet/KT18xby6bb1ur1dKe7i6YVrBaksP4AgtuLES
-Hic et nunc Markeplace: https://better-call.dev/mainnet/KT1UDC6cSMhpbrrMr8vLzgcrWzKmUoi6KAMJ
+Hic et nunc Markeplace: https://better-call.dev/mainnet/KT1PgR886ZeqxVVDnBBpac6V7Hvrh62Qg3r9
 
 ```
 edo2net
