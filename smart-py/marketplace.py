@@ -1,5 +1,3 @@
-import smartpy as sp
-
 class Marketplace(sp.Contract):
     def __init__(self, objkt, metadata, manager):
         self.init(
@@ -18,7 +16,13 @@ class Marketplace(sp.Contract):
     
     @sp.entry_point
     def collect(self, params):
-        sp.verify((sp.amount == sp.utils.nat_to_mutez(params.objkt_amount * sp.fst(sp.ediv(self.data.swaps[params.swap_id].xtz_per_objkt, sp.mutez(1)).open_some()))) & (abs(self.data.swaps[params.swap_id].objkt_amount - params.objkt_amount) >= 0))
+        sp.verify(
+            # verifies if tez amount is equal to objkts amount * price per objkt
+            (sp.amount == sp.utils.nat_to_mutez(params.objkt_amount * sp.fst(sp.ediv(self.data.swaps[params.swap_id].xtz_per_objkt, sp.mutez(1)).open_some()))) 
+            # exploit solution
+            & (abs(self.data.swaps[params.swap_id].objkt_amount - params.objkt_amount) >= 0)
+            & (self.data.swaps[params.swap_id].objkt_amount != 0)
+            )
 
         self.amount = params.objkt_amount * sp.fst(sp.ediv(self.data.swaps[params.swap_id].xtz_per_objkt, sp.mutez(1)).open_some())
             
@@ -38,9 +42,6 @@ class Marketplace(sp.Contract):
         self.data.swaps[params.swap_id].objkt_amount = abs(self.data.swaps[params.swap_id].objkt_amount - params.objkt_amount)
         
         self.fa2_transfer(self.data.objkt, sp.self_address, sp.sender, self.data.swaps[params.swap_id].objkt_id, params.objkt_amount)
-        
-        sp.if self.data.swaps[params.swap_id].objkt_amount == 0:
-            del self.data.swaps[params.swap_id]
     
     @sp.entry_point
     def cancel_swap(self, params):
