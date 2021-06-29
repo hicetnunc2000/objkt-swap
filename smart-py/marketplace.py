@@ -18,26 +18,26 @@ class Marketplace(sp.Contract):
     def collect(self, params):
         sp.verify(
             # verifies if tez amount is equal to objkts amount * price per objkt
-            (sp.amount == sp.utils.nat_to_mutez(sp.fst(sp.ediv(self.data.swaps[params.swap_id].xtz_per_objkt, sp.mutez(1)).open_some()))) 
-            & (self.data.swaps[params.swap_id].objkt_amount != 0)
-            )
+            (sp.amount == sp.utils.nat_to_mutez(sp.fst(sp.ediv(self.data.swaps[params.swap_id].xtz_per_objkt, sp.mutez(1)).open_some()))) & (self.data.swaps[params.swap_id].objkt_amount != 0))
 
-        self.amount = sp.fst(sp.ediv(self.data.swaps[params.swap_id].xtz_per_objkt, sp.mutez(1)).open_some())
+        sp.if (self.data.swaps[params.swap_id].xtz_per_objkt != sp.tez(0)):
+
+            self.amount = sp.fst(sp.ediv(self.data.swaps[params.swap_id].xtz_per_objkt, sp.mutez(1)).open_some())
+                
+            # calculate fees and royalties
+            self.fee = self.amount * (self.data.swaps[params.swap_id].royalties + 25) / 1000
+            self.royalties = self.data.swaps[params.swap_id].royalties * self.fee / (self.data.swaps[params.swap_id].royalties + 25)
             
-        # calculate fees and royalties
-        self.fee = self.amount * (self.data.swaps[params.swap_id].royalties + 25) / 1000
-        self.royalties = self.data.swaps[params.swap_id].royalties * self.fee / (self.data.swaps[params.swap_id].royalties + 25)
+            # send royalties to NFT creator
+            sp.send(self.data.swaps[params.swap_id].creator, sp.utils.nat_to_mutez(self.royalties))
+                
+            # send management fees
+            sp.send(self.data.manager, sp.utils.nat_to_mutez(abs(self.fee - self.royalties)))
+                
+            # send value to issuer
+            sp.send(self.data.swaps[params.swap_id].issuer, sp.amount -  sp.utils.nat_to_mutez(self.fee))
         
-        # send royalties to NFT creator
-        sp.send(self.data.swaps[params.swap_id].creator, sp.utils.nat_to_mutez(self.royalties))
-            
-        # send management fees
-        sp.send(self.data.manager, sp.utils.nat_to_mutez(abs(self.fee - self.royalties)))
-            
-        # send value to issuer
-        sp.send(self.data.swaps[params.swap_id].issuer, sp.amount -  sp.utils.nat_to_mutez(self.fee))
-        
-        self.data.swaps[params.swap_id].objkt_amount = abs(self.data.swaps[params.swap_id].objkt_amount - 1)
+        self.data.swaps[params.swap_id].objkt_amount = sp.as_nat(self.data.swaps[params.swap_id].objkt_amount - 1)
         
         self.fa2_transfer(self.data.objkt, sp.self_address, sp.sender, self.data.swaps[params.swap_id].objkt_id, 1)
     
