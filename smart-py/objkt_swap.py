@@ -64,8 +64,10 @@ class OBJKTSwap(sp.Contract):
 
     @sp.entry_point
     def swap(self, params):
-        # sp.verify(params.objkt_amount > 0)
-        sp.verify(params.objkt_amount == 1)
+        sp.verify(params.objkt_amount > 0)
+        sp.verify(params.objkt_amount <= 10000)
+        sp.verify(params.objkt_id > 0)
+        sp.verify(params.xtz_per_objkt >= sp.utils.nat_to_mutez(0))
 
         self.fa2_transfer(
             self.data.objkt,
@@ -81,6 +83,7 @@ class OBJKTSwap(sp.Contract):
             objkt_amount=params.objkt_amount,
             xtz_per_objkt=params.xtz_per_objkt
         )
+
         self.data.swap_id += 1
 
     @sp.entry_point
@@ -595,21 +598,35 @@ def test():
 
     scenario += swap
 
-    # illegal attempts (self, many items)
+    # illegal attempts
 
-    # more than 1 swap should fail
+    # exactly 1 paid swap should pass
+    scenario += swap.swap(
+        objkt_id = 123456,
+        objkt_amount = 1,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(sender = seller.address, valid = True)
+
+    # exactly 1 free swap should pass
+    scenario += swap.swap(
+        objkt_id = 123456,
+        objkt_amount = 1,
+        xtz_per_objkt = sp.utils.nat_to_mutez(0)
+    ).run(sender = seller.address, valid = True)
+
+    # more than 1 swap should pass
     scenario += swap.swap(
         objkt_id = 123456,
         objkt_amount = 2,
         xtz_per_objkt = sp.utils.nat_to_mutez(1)
-    ).run(sender = seller.address, valid = False)
+    ).run(sender = seller.address, valid = True)
 
-    # large number of swaps should fail
-    scenario += swap.swap(
-        objkt_id = 123456,
-        objkt_amount = 11111111,
-        xtz_per_objkt = sp.utils.nat_to_mutez(1)
-    ).run(sender = seller.address, valid = False)
+    # TODO test for requesting more swaps than are available
+    # scenario += swap.swap(
+        # objkt_id = 123456,
+        # objkt_amount = 11111111,
+        # xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    # ).run(sender = seller.address, valid = False)
 
     # zero swaps should fail
     scenario += swap.swap(
@@ -619,7 +636,7 @@ def test():
     ).run(sender = seller.address, valid = False)
 
     # one swap should pass
-    # TODO add and test validation
+    # TODO add and test validation that sender is owner of objkt
     scenario += swap.swap(
         objkt_id = 123456,
         objkt_amount = 1,
