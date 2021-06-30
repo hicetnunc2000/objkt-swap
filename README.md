@@ -23,7 +23,6 @@ Hic et nunc Unregistry: https://better-call.dev/mainnet/KT1WN8NrfvH18g7uiBY62Thc
 Hic et nunc Markeplace: https://better-call.dev/mainnet/KT1X7Wc5vFHPHMp7AfwQ2Sp1soip9g7NdiQV
 Report: 
 Galleries:
-
 ```
 edo2net
 ```
