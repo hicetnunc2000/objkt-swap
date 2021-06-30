@@ -45,7 +45,7 @@ class Marketplace(sp.Contract):
     def cancel_swap(self, params):
         sp.verify((sp.sender == self.data.swaps[params].issuer) & (self.data.swaps[params].objkt_amount != 0))
         self.fa2_transfer(self.data.objkt, sp.self_address, sp.sender, self.data.swaps[params].objkt_id, self.data.swaps[params].objkt_amount)
-        del self.data.swaps[params]
+        self.data.swaps[params].objkt_amount = 0
         
     @sp.entry_point
     def update_manager(self, params):
