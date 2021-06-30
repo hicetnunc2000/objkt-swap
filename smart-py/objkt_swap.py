@@ -2,9 +2,12 @@ import smartpy as sp
 
 class OBJKTSwap(sp.Contract):
     def __init__(self, objkt, hdao, manager, metadata, curate):
+        # TODO refactor these default variables as they can cause
+        # errors when referencing the value that is returned
         self.fee = 0
         self.amount = 0
         self.royalties = 0
+
         self.init(
             swaps = sp.big_map(
                 tkey=sp.TNat,
@@ -24,7 +27,9 @@ class OBJKTSwap(sp.Contract):
                 )
             ),
             swap_id = 0,
-            # what is the 152 for?
+            # start objkt ids from this number
+            # when upgrading contracts this must be greater
+            # than the most recent objkt number
             objkt_id = 152,
             objkt = objkt,
             hdao = hdao,
@@ -307,7 +312,7 @@ class OBJKTSwap(sp.Contract):
             c
         )
 
-@sp.add_test("")
+@sp.add_test("Class constructs with default values")
 def test():
     # init test and create html output
     scenario = sp.test_scenario()
@@ -321,13 +326,43 @@ def test():
     objkt = sp.test_account("objkt123")
     hdao = sp.test_account("hdao")
 
+    metadata = {
+        "name": "something"
+    }
+
     swap = OBJKTSwap(
         objkt.address,
         hdao.address,
         manager.address,
-        {"name":"something"}, # metadata
+        metadata,
         curator.address
     )
 
     scenario += swap
-    scenario.simulation
+
+    # default variables that get set in the contract constructor
+    # TODO find out if these are the intended initial values
+    scenario.verify(swap.data.swap_id == 0)
+    scenario.verify(swap.data.objkt_id == 152)
+    scenario.verify(swap.data.genesis == sp.timestamp(0))
+    scenario.verify(swap.data.locked == False)
+
+    # addresses are as expected
+    scenario.verify(swap.data.manager == manager.address)
+    scenario.verify(swap.data.hdao == hdao.address)
+    scenario.verify(swap.data.curate == curator.address)
+    scenario.verify(swap.data.objkt == objkt.address)
+
+    # default values
+    # TODO cannot be tested due to locally declared variables inside
+    # scenario.verify(swap.royalties == 0)
+    # scenario.verify(swap.fee == 0)
+    # scenario.verify(swap.amount == 0)
+
+    # metadata
+    # TODO how does this work? am i passing in the metadata correctly?
+    # scenario.verify(swap.data.metadata.name == 'something')
+
+    # TODO how to test these members?
+    # print(vars(swap.data.swaps))
+    # print(vars(swap.data.royalties))
