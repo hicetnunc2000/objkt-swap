@@ -487,4 +487,3 @@ def test():
 
     # illegal attempts (self)
     scenario += swap.update_manager(seller.address).run(sender = seller.address, valid = False)
-
