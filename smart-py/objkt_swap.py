@@ -395,4 +395,11 @@ def test():
 
     scenario += swap
 
-    scenario += swap.genesis().run(sender = seller)
+    # illegal attempts
+    scenario += swap.genesis().run(sender = seller, valid = False)
+    scenario += swap.genesis().run(sender = hdao, valid = False)
+    scenario += swap.genesis().run(sender = curator, valid = False)
+    scenario += swap.genesis().run(sender = objkt, valid = False)
+
+    # valid attempt
+    scenario += swap.genesis().run(sender = manager, valid = True)
