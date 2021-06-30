@@ -366,3 +366,36 @@ def test():
     # TODO how to test these members?
     # print(vars(swap.data.swaps))
     # print(vars(swap.data.royalties))
+
+@sp.add_test("Test 'genesis' entrypoint")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Genesis Test")
+
+    # init test values
+    seller = sp.test_account("seller")
+    buyer = sp.test_account("buyer")
+    manager = sp.test_account("manager")
+    curator = sp.test_account("curator")
+    objkt = sp.test_account("objkt123")
+    hdao = sp.test_account("hdao")
+
+    metadata = {
+        "name": "something"
+    }
+
+    swap = OBJKTSwap(
+        objkt.address,
+        hdao.address,
+        manager.address,
+        metadata,
+        curator.address
+    )
+
+    scenario += swap
+
+    scenario += swap.genesis().run(sender = seller)
+
+
+
