@@ -5,7 +5,7 @@ class Marketplace(sp.Contract):
             metadata = metadata,
             manager = manager,
             swaps = sp.big_map(tkey=sp.TNat, tvalue=sp.TRecord(issuer=sp.TAddress, objkt_amount=sp.TNat, objkt_id=sp.TNat, xtz_per_objkt=sp.TMutez, royalties=sp.TNat, creator=sp.TAddress)),
-            counter = 0
+            counter = 500000
             )
             
     @sp.entry_point
