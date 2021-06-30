@@ -245,7 +245,6 @@ class OBJKTSwap(sp.Contract):
         )
 
     def mint_hDAO(self, params):
-
         c = sp.contract(
             sp.TList(
                 sp.TRecord(
@@ -264,8 +263,8 @@ class OBJKTSwap(sp.Contract):
         )
 
     def fa2_transfer(self, fa2, from_, to_, objkt_id, objkt_amount):
-        # sp.verify(params.objkt_amount == 1)
-        sp.verify(params.objkt_amount > 0)
+        # sp.verify(objkt_amount == 1)
+        sp.verify(objkt_amount > 0)
 
         c = sp.contract(
             sp.TList(
@@ -307,3 +306,28 @@ class OBJKTSwap(sp.Contract):
             sp.mutez(0),
             c
         )
+
+@sp.add_test("")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Swap Objkt Test")
+
+    # init test values
+    seller = sp.test_account("seller")
+    buyer = sp.test_account("buyer")
+    manager = sp.test_account("manager")
+    curator = sp.test_account("curator")
+    objkt = sp.test_account("objkt123")
+    hdao = sp.test_account("hdao")
+
+    swap = OBJKTSwap(
+        objkt.address,
+        hdao.address,
+        manager.address,
+        {"name":"something"}, # metadata
+        curator.address
+    )
+
+    scenario += swap
+    scenario.simulation
