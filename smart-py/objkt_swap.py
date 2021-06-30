@@ -64,8 +64,8 @@ class OBJKTSwap(sp.Contract):
 
     @sp.entry_point
     def swap(self, params):
-        sp.verify(params.objkt_amount > 0)
-        # sp.verify(params.objkt_amount == 1)
+        # sp.verify(params.objkt_amount > 0)
+        sp.verify(params.objkt_amount == 1)
 
         self.fa2_transfer(
             self.data.objkt,
@@ -325,9 +325,56 @@ def test():
     objkt = sp.test_account("objkt123")
     hdao = sp.test_account("hdao")
 
+    creator = sp.test_account("creator")
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
+
+    """ json representation
     metadata = {
-        "name": "something"
+        "name":"test",
+        "description":"test",
+        "tags": [
+            'test'
+        ],
+        "symbol":"OBJKT",
+        "artifactUri":"ipfs://test",
+        "displayUri":"ipfs://test",
+        "thumbnailUri":"ipfs://test",
+        "creators":list([
+            creator.address
+        ]),
+        "formats":[
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        "decimals":0,
+        "isBooleanAmount":False,
+        "shouldPreferSymbol":False
     }
+    """
 
     swap = OBJKTSwap(
         objkt.address,
@@ -379,9 +426,30 @@ def test():
     objkt = sp.test_account("objkt123")
     hdao = sp.test_account("hdao")
 
-    metadata = {
-        "name": "something"
-    }
+    creator = sp.test_account("creator")
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
 
     swap = OBJKTSwap(
         objkt.address,
@@ -415,9 +483,30 @@ def test():
     objkt = sp.test_account("objkt123")
     hdao = sp.test_account("hdao")
 
-    metadata = {
-        "name": "something"
-    }
+    creator = sp.test_account("creator")
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
 
     swap = OBJKTSwap(
         objkt.address,
@@ -471,9 +560,30 @@ def test():
     objkt = sp.test_account("objkt123")
     hdao = sp.test_account("hdao")
 
-    metadata = {
-        "name": "something"
-    }
+    creator = sp.test_account("creator")
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
 
     swap = OBJKTSwap(
         objkt.address,
@@ -485,5 +595,33 @@ def test():
 
     scenario += swap
 
-    # illegal attempts (self)
-    scenario += swap.update_manager(seller.address).run(sender = seller.address, valid = False)
+    # illegal attempts (self, many items)
+
+    # more than 1 swap should fail
+    scenario += swap.swap(
+        objkt_id = 123456,
+        objkt_amount = 2,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(sender = seller.address, valid = False)
+
+    # large number of swaps should fail
+    scenario += swap.swap(
+        objkt_id = 123456,
+        objkt_amount = 11111111,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(sender = seller.address, valid = False)
+
+    # zero swaps should fail
+    scenario += swap.swap(
+        objkt_id = 123456,
+        objkt_amount = 0,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(sender = seller.address, valid = False)
+
+    # one swap should pass
+    # TODO add and test validation
+    scenario += swap.swap(
+        objkt_id = 123456,
+        objkt_amount = 1,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(sender = seller.address, valid = True)
