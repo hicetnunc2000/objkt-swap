@@ -320,7 +320,6 @@ def test():
 
     # init test values
     seller = sp.test_account("seller")
-    buyer = sp.test_account("buyer")
     manager = sp.test_account("manager")
     curator = sp.test_account("curator")
     objkt = sp.test_account("objkt123")
@@ -375,7 +374,6 @@ def test():
 
     # init test values
     seller = sp.test_account("seller")
-    buyer = sp.test_account("buyer")
     manager = sp.test_account("manager")
     curator = sp.test_account("curator")
     objkt = sp.test_account("objkt123")
@@ -403,3 +401,59 @@ def test():
 
     # valid attempt
     scenario += swap.genesis().run(sender = manager, valid = True)
+
+@sp.add_test("Test update manager entrypoint")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Update Manager Test")
+
+    # init test values
+    seller = sp.test_account("seller")
+    manager = sp.test_account("manager")
+    curator = sp.test_account("curator")
+    objkt = sp.test_account("objkt123")
+    hdao = sp.test_account("hdao")
+
+    metadata = {
+        "name": "something"
+    }
+
+    swap = OBJKTSwap(
+        objkt.address,
+        hdao.address,
+        manager.address,
+        metadata,
+        curator.address
+    )
+
+    scenario += swap
+
+    # illegal attempts (self)
+    scenario += swap.update_manager(seller.address).run(sender = seller.address, valid = False)
+    scenario += swap.update_manager(hdao.address).run(sender = hdao.address, valid = False)
+    scenario += swap.update_manager(curator.address).run(sender = curator.address, valid = False)
+    scenario += swap.update_manager(objkt.address).run(sender = objkt.address, valid = False)
+
+    # illegal attempts (lateral)
+    scenario += swap.update_manager(seller.address).run(sender = objkt.address, valid = False)
+    scenario += swap.update_manager(hdao.address).run(sender = seller.address, valid = False)
+    scenario += swap.update_manager(manager.address).run(sender = curator.address, valid = False)
+    scenario += swap.update_manager(curator.address).run(sender = hdao.address, valid = False)
+
+    # situational tests
+
+    # switch manager and confirm manager can no longer manage
+    newManager = sp.test_account("newManager")
+
+    # not valid to swap manager to curator
+    scenario += swap.update_manager(curator.address).run(sender = newManager.address, valid = False)
+
+    # valid for existing manager to change the manager
+    scenario += swap.update_manager(newManager.address).run(sender = manager.address, valid = True)
+
+    # now the new manager can change to anyone
+    scenario += swap.update_manager(curator.address).run(sender = newManager.address, valid = True)
+
+    # but old manager can no longer change manager
+    scenario += swap.update_manager(seller.address).run(sender = manager.address, valid = False)
