@@ -353,32 +353,6 @@ def test():
         shouldPreferSymbol = False
     )
 
-    """ json representation
-    metadata = {
-        "name":"test",
-        "description":"test",
-        "tags": [
-            'test'
-        ],
-        "symbol":"OBJKT",
-        "artifactUri":"ipfs://test",
-        "displayUri":"ipfs://test",
-        "thumbnailUri":"ipfs://test",
-        "creators":list([
-            creator.address
-        ]),
-        "formats":[
-            {
-                "uri":"ipfs://test",
-                "mimeType":"image/png"
-            }
-        ],
-        "decimals":0,
-        "isBooleanAmount":False,
-        "shouldPreferSymbol":False
-    }
-    """
-
     swap = OBJKTSwap(
         objkt.address,
         hdao.address,
