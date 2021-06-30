@@ -367,7 +367,7 @@ def test():
     # print(vars(swap.data.swaps))
     # print(vars(swap.data.royalties))
 
-@sp.add_test("Test 'genesis' entrypoint")
+@sp.add_test("Test genesis entrypoint")
 def test():
     # init test and create html output
     scenario = sp.test_scenario()
@@ -396,6 +396,3 @@ def test():
     scenario += swap
 
     scenario += swap.genesis().run(sender = seller)
-
-
-
