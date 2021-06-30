@@ -10,6 +10,7 @@ class Marketplace(sp.Contract):
             
     @sp.entry_point
     def swap(self, params):
+        sp.verify(params.objkt_amount > 0)
         self.fa2_transfer(self.data.objkt, sp.sender, sp.self_address, params.objkt_id, params.objkt_amount)
         self.data.swaps[self.data.counter] = sp.record(issuer=sp.sender, objkt_amount=params.objkt_amount, objkt_id=params.objkt_id, xtz_per_objkt=params.xtz_per_objkt, royalties=params.royalties, creator=params.creator)
         self.data.counter += 1
@@ -17,7 +18,7 @@ class Marketplace(sp.Contract):
     @sp.entry_point
     def collect(self, params):
         sp.verify(
-            # verifies if tez amount is equal to objkts amount * price per objkt
+            # verifies if tez amount is equal to price per objkt
             (sp.amount == sp.utils.nat_to_mutez(sp.fst(sp.ediv(self.data.swaps[params.swap_id].xtz_per_objkt, sp.mutez(1)).open_some()))) & (self.data.swaps[params.swap_id].objkt_amount != 0))
 
         sp.if (self.data.swaps[params.swap_id].xtz_per_objkt != sp.tez(0)):
@@ -45,7 +46,7 @@ class Marketplace(sp.Contract):
     def cancel_swap(self, params):
         sp.verify((sp.sender == self.data.swaps[params].issuer) & (self.data.swaps[params].objkt_amount != 0))
         self.fa2_transfer(self.data.objkt, sp.self_address, sp.sender, self.data.swaps[params].objkt_id, self.data.swaps[params].objkt_amount)
-        self.data.swaps[params].objkt_amount = 0
+        del self.data.swaps[params]
         
     @sp.entry_point
     def update_manager(self, params):
