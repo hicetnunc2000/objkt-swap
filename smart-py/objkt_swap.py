@@ -72,16 +72,17 @@ class OBJKTSwap(sp.Contract):
         # TODO make this at least the starting number (152 atm)
         sp.verify(params.objkt_id > 0)
         # the objkt number should not be beyond the max number
-        sp.verify(self.data.objkt_id > 0)
+        sp.verify(params.objkt_id <= self.data.objkt_id)
 
         # get the objkt
+        # TODO how to get the details of the objkt???
         c = sp.contract(
             sp.TInt,
             params.objkt_id,
         ).open_some()
 
-        sp.verify(params.objkt_amount <= c.objkt_amount)
-        # print(params.objkt_amount)
+        print(c)
+        # sp.verify(c.amount > 0)
 
         # sp.verify(params.objkt_id == c.token_id)
         # sp.verify(params.objkt_amount <= c.amount)
