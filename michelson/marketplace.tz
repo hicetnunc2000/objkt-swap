@@ -1,8 +1,8 @@
-parameter (or (or (nat %cancel_swap) (nat %collect)) (or (pair %swap (pair (address %creator) (nat %objkt_amount)) (pair (nat %objkt_id) (pair (nat %royalties) (mutez %xtz_per_objkt)))) (address %update_manager)));
-storage   (pair (pair (nat %counter) (address %manager)) (pair (big_map %metadata string bytes) (pair (address %objkt) (big_map %swaps nat (pair (pair (address %creator) (pair (address %issuer) (nat %objkt_amount))) (pair (nat %objkt_id) (pair (nat %royalties) (mutez %xtz_per_objkt))))))));
+parameter (or (or (nat %cancel_swap) (nat %collect)) (or (pair %swap (pair (address %creator) (nat %objkt_amount)) (pair (nat %objkt_id) (pair (nat %royalties) (mutez %xtz_per_objkt)))) (or (nat %update_fee) (address %update_manager))));
+storage   (pair (pair (nat %counter) (pair (nat %fee) (address %manager))) (pair (big_map %metadata string bytes) (pair (address %objkt) (big_map %swaps nat (pair (pair (address %creator) (pair (address %issuer) (nat %objkt_amount))) (pair (nat %objkt_id) (pair (nat %royalties) (mutez %xtz_per_objkt))))))));
 code
   {
-    CAST (pair (or (or nat nat) (or (pair (pair address nat) (pair nat (pair nat mutez))) address)) (pair (pair nat address) (pair (big_map string bytes) (pair address (big_map nat (pair (pair address (pair address nat)) (pair nat (pair nat mutez))))))));
+    CAST (pair (or (or nat nat) (or (pair (pair address nat) (pair nat (pair nat mutez))) (or nat address))) (pair (pair nat (pair nat address)) (pair (big_map string bytes) (pair address (big_map nat (pair (pair address (pair address nat)) (pair nat (pair nat mutez))))))));
     UNPAIR;
     IF_LEFT
       {
@@ -19,7 +19,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 321;
+                PUSH int 328;
                 FAILWITH;
               };
             CAR;
@@ -37,7 +37,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 321;
+                    PUSH int 328;
                     FAILWITH;
                   };
                 CAR;
@@ -61,7 +61,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 331;
+                PUSH int 343;
                 FAILWITH;
               };
             PUSH mutez 0;
@@ -74,7 +74,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 322;
+                PUSH int 329;
                 FAILWITH;
               };
             CAR;
@@ -86,7 +86,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 322;
+                PUSH int 329;
                 FAILWITH;
               };
             GET 3;
@@ -117,7 +117,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 294;
+                PUSH int 301;
                 FAILWITH;
               };
             GET 6;
@@ -125,7 +125,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 294;
+                PUSH int 301;
                 FAILWITH;
               };
             CAR;
@@ -143,7 +143,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 294;
+                    PUSH int 301;
                     FAILWITH;
                   };
                 CAR;
@@ -168,7 +168,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 298;
+                PUSH int 305;
                 FAILWITH;
               };
             GET 6;
@@ -184,7 +184,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 307;
+                    PUSH int 314;
                     FAILWITH;
                   };
                 CAR;
@@ -193,33 +193,43 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 307;
+                    PUSH int 314;
                     FAILWITH;
                   };
                 PUSH mutez 1;
-                PUSH nat 25;
-                DUP 6;
+                DIG 4;
+                DUP;
+                CAR;
+                GET 3;
+                SWAP;
+                DUP;
+                DUG 6;
                 GET 6;
                 DUP 6;
                 GET;
                 IF_SOME
                   {}
                   {
-                    PUSH int 304;
+                    PUSH int 311;
                     FAILWITH;
                   };
                 GET 5;
                 ADD;
                 PUSH nat 1000;
-                PUSH nat 25;
-                DUP 8;
+                DIG 6;
+                DUP;
+                CAR;
+                GET 3;
+                SWAP;
+                DUP;
+                DUG 8;
                 GET 6;
                 DUP 8;
                 GET;
                 IF_SOME
                   {}
                   {
-                    PUSH int 303;
+                    PUSH int 310;
                     FAILWITH;
                   };
                 GET 5;
@@ -232,7 +242,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 300;
+                    PUSH int 307;
                     FAILWITH;
                   };
                 GET 6;
@@ -240,7 +250,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 300;
+                    PUSH int 307;
                     FAILWITH;
                   };
                 CAR;
@@ -251,7 +261,7 @@ code
                     CAR;
                   }
                   {
-                    PUSH int 303;
+                    PUSH int 310;
                     FAILWITH;
                   };
                 DUP 7;
@@ -261,7 +271,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 304;
+                    PUSH int 311;
                     FAILWITH;
                   };
                 GET 5;
@@ -272,7 +282,7 @@ code
                     CAR;
                   }
                   {
-                    PUSH int 304;
+                    PUSH int 311;
                     FAILWITH;
                   };
                 MUL;
@@ -281,40 +291,50 @@ code
                 CONS;
                 DUP 3;
                 CAR;
-                CDR;
+                GET 4;
                 CONTRACT unit;
+                IF_SOME
+                  {}
+                  {
+                    PUSH int 317;
+                    FAILWITH;
+                  };
+                PUSH mutez 1;
+                DIG 4;
+                DUP;
+                CAR;
+                GET 3;
+                SWAP;
+                DUP;
+                DUG 6;
+                GET 6;
+                DUP 6;
+                GET;
+                IF_SOME
+                  {}
+                  {
+                    PUSH int 311;
+                    FAILWITH;
+                  };
+                GET 5;
+                ADD;
+                PUSH nat 1000;
+                DIG 6;
+                DUP;
+                CAR;
+                GET 3;
+                SWAP;
+                DUP;
+                DUG 8;
+                GET 6;
+                DUP 8;
+                GET;
                 IF_SOME
                   {}
                   {
                     PUSH int 310;
                     FAILWITH;
                   };
-                PUSH mutez 1;
-                PUSH nat 25;
-                DUP 6;
-                GET 6;
-                DUP 6;
-                GET;
-                IF_SOME
-                  {}
-                  {
-                    PUSH int 304;
-                    FAILWITH;
-                  };
-                GET 5;
-                ADD;
-                PUSH nat 1000;
-                PUSH nat 25;
-                DUP 8;
-                GET 6;
-                DUP 8;
-                GET;
-                IF_SOME
-                  {}
-                  {
-                    PUSH int 303;
-                    FAILWITH;
-                  };
                 GET 5;
                 ADD;
                 PUSH mutez 1;
@@ -325,7 +345,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 300;
+                    PUSH int 307;
                     FAILWITH;
                   };
                 GET 6;
@@ -333,7 +353,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 300;
+                    PUSH int 307;
                     FAILWITH;
                   };
                 CAR;
@@ -344,7 +364,7 @@ code
                     CAR;
                   }
                   {
-                    PUSH int 303;
+                    PUSH int 310;
                     FAILWITH;
                   };
                 DUP 7;
@@ -354,7 +374,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 304;
+                    PUSH int 311;
                     FAILWITH;
                   };
                 GET 5;
@@ -365,19 +385,24 @@ code
                     CAR;
                   }
                   {
-                    PUSH int 304;
+                    PUSH int 311;
                     FAILWITH;
                   };
                 PUSH nat 1000;
-                PUSH nat 25;
-                DUP 8;
+                DIG 6;
+                DUP;
+                CAR;
+                GET 3;
+                SWAP;
+                DUP;
+                DUG 8;
                 GET 6;
                 DUP 8;
                 GET;
                 IF_SOME
                   {}
                   {
-                    PUSH int 303;
+                    PUSH int 310;
                     FAILWITH;
                   };
                 GET 5;
@@ -390,7 +415,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 300;
+                    PUSH int 307;
                     FAILWITH;
                   };
                 GET 6;
@@ -398,7 +423,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 300;
+                    PUSH int 307;
                     FAILWITH;
                   };
                 CAR;
@@ -409,7 +434,7 @@ code
                     CAR;
                   }
                   {
-                    PUSH int 303;
+                    PUSH int 310;
                     FAILWITH;
                   };
                 SUB;
@@ -425,7 +450,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 313;
+                    PUSH int 320;
                     FAILWITH;
                   };
                 CAR;
@@ -434,20 +459,25 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 313;
+                    PUSH int 320;
                     FAILWITH;
                   };
                 PUSH mutez 1;
                 PUSH nat 1000;
-                PUSH nat 25;
-                DUP 7;
+                DIG 5;
+                DUP;
+                CAR;
+                GET 3;
+                SWAP;
+                DUP;
+                DUG 7;
                 GET 6;
                 DUP 7;
                 GET;
                 IF_SOME
                   {}
                   {
-                    PUSH int 303;
+                    PUSH int 310;
                     FAILWITH;
                   };
                 GET 5;
@@ -460,7 +490,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 300;
+                    PUSH int 307;
                     FAILWITH;
                   };
                 GET 6;
@@ -468,7 +498,7 @@ code
                 IF_SOME
                   {}
                   {
-                    PUSH int 300;
+                    PUSH int 307;
                     FAILWITH;
                   };
                 CAR;
@@ -479,7 +509,7 @@ code
                     CAR;
                   }
                   {
-                    PUSH int 303;
+                    PUSH int 310;
                     FAILWITH;
                   };
                 MUL;
@@ -503,7 +533,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 315;
+                PUSH int 322;
                 FAILWITH;
               };
             UNPAIR;
@@ -518,7 +548,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 315;
+                PUSH int 322;
                 FAILWITH;
               };
             CAR;
@@ -528,7 +558,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 315;
+                PUSH int 322;
                 FAILWITH;
               };
             SWAP;
@@ -547,7 +577,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 331;
+                PUSH int 343;
                 FAILWITH;
               };
             PUSH mutez 0;
@@ -561,7 +591,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 317;
+                PUSH int 324;
                 FAILWITH;
               };
             GET 3;
@@ -585,9 +615,33 @@ code
             COMPARE;
             LT;
             IF
+              {
+                DUP;
+                GET 5;
+                PUSH nat 0;
+                SWAP;
+                COMPARE;
+                GE;
+                IF
+                  {
+                    PUSH bool True;
+                  }
+                  {
+                    DUP;
+                    GET 5;
+                    PUSH nat 250;
+                    SWAP;
+                    COMPARE;
+                    LE;
+                  };
+              }
+              {
+                PUSH bool False;
+              };
+            IF
               {}
               {
-                PUSH string "WrongCondition: params.objkt_amount > 0";
+                PUSH string "WrongCondition: (params.objkt_amount > 0) & ((params.royalties >= 0) | (params.royalties <= 250))";
                 FAILWITH;
               };
             NIL operation;
@@ -597,7 +651,7 @@ code
             IF_SOME
               {}
               {
-                PUSH int 331;
+                PUSH int 343;
                 FAILWITH;
               };
             PUSH mutez 0;
@@ -658,27 +712,60 @@ code
             SWAP;
           }
           {
-            SWAP;
-            DUP;
-            DUG 2;
-            CAR;
-            CDR;
-            SENDER;
-            COMPARE;
-            EQ;
-            IF
-              {}
+            IF_LEFT
               {
-                PUSH string "WrongCondition: sp.sender == self.data.manager";
-                FAILWITH;
+                SWAP;
+                DUP;
+                DUG 2;
+                CAR;
+                GET 4;
+                SENDER;
+                COMPARE;
+                EQ;
+                IF
+                  {}
+                  {
+                    PUSH string "WrongCondition: sp.sender == self.data.manager";
+                    FAILWITH;
+                  };
+                SWAP;
+                UNPAIR;
+                UNPAIR;
+                SWAP;
+                CDR;
+                DIG 3;
+                PAIR;
+                SWAP;
+                PAIR;
+                PAIR;
+              }
+              {
+                SWAP;
+                DUP;
+                DUG 2;
+                CAR;
+                GET 4;
+                SENDER;
+                COMPARE;
+                EQ;
+                IF
+                  {}
+                  {
+                    PUSH string "WrongCondition: sp.sender == self.data.manager";
+                    FAILWITH;
+                  };
+                SWAP;
+                UNPAIR;
+                UNPAIR;
+                SWAP;
+                CAR;
+                DIG 3;
+                SWAP;
+                PAIR;
+                SWAP;
+                PAIR;
+                PAIR;
               };
-            SWAP;
-            UNPAIR;
-            CAR;
-            DIG 2;
-            SWAP;
-            PAIR;
-            PAIR;
             NIL operation;
           };
       };
