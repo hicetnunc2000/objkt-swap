@@ -72,7 +72,21 @@ class OBJKTSwap(sp.Contract):
         # TODO make this at least the starting number (152 atm)
         sp.verify(params.objkt_id > 0)
         # the objkt number should not be beyond the max number
-        sp.verify(params.objkt_id <= self.data.objkt_id)
+        sp.verify(self.data.objkt_id > 0)
+
+        # get the objkt
+        c = sp.contract(
+            sp.TInt,
+            params.objkt_id,
+        ).open_some()
+
+        sp.verify(params.objkt_amount <= c.objkt_amount)
+        # print(params.objkt_amount)
+
+        # sp.verify(params.objkt_id == c.token_id)
+        # sp.verify(params.objkt_amount <= c.amount)
+
+        # sp.verify(params.objkt_id <= self.data.objkt_id)
         # the swap must carry a value of at least 0
         sp.verify(params.xtz_per_objkt >= sp.utils.nat_to_mutez(0))
 
@@ -231,6 +245,19 @@ class OBJKTSwap(sp.Contract):
         )
 
         self.data.objkt_id += 1
+
+    # @sp.entry_point
+    # def details(self, params):
+    #     print('details')
+    #
+    #     c = sp.contract(
+    #         sp.TInt,
+    #         params.objkt_id,
+    #     ).open_some()
+    #
+    #     print(c.token_id)
+    #
+    #     print('-----------')
 
     @sp.entry_point
     def curate(self, params):
@@ -589,8 +616,8 @@ def test():
 
     # swap with objkt id above max must fail
     scenario += swap.swap(
-        objkt_id = 123456,
-        objkt_amount = 1,
+        objkt_id = 153,
+        objkt_amount = 2,
         xtz_per_objkt = sp.utils.nat_to_mutez(1)
     ).run(
         sender = seller.address,
@@ -617,6 +644,20 @@ def test():
     # the mint was successful but still no swap
     scenario.verify(swap.data.objkt_id == 153)
     scenario.verify(swap.data.swap_id == 0)
+    scenario.verify(swap.data.swaps.contains(0) == False)
+
+    # try swap more objkts than exist must fail
+    scenario += swap.swap(
+        objkt_id = 153,
+        objkt_amount = 2,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(
+        sender = seller.address,
+        valid = False
+    )
+
+    # swap id should not have incremented
+    scenario.verify(swap.data.swaps.contains(0) == False)
 
     # swap with new objkt id must pass
     scenario += swap.swap(
