@@ -64,10 +64,20 @@ class OBJKTSwap(sp.Contract):
 
     @sp.entry_point
     def swap(self, params):
+        # must be at least one edition
         sp.verify(params.objkt_amount > 0)
+        # no more than 10k
         sp.verify(params.objkt_amount <= 10000)
+        # the objkt id must be at least 1
+        # TODO make this at least the starting number (152 atm)
         sp.verify(params.objkt_id > 0)
+        # the objkt number should not be beyond the max number
+        sp.verify(params.objkt_id <= self.data.objkt_id)
+        # the swap must carry a value of at least 0
         sp.verify(params.xtz_per_objkt >= sp.utils.nat_to_mutez(0))
+
+        # TODO verify sender has the objkt and the number of editions they
+        # have is no more than their max number
 
         self.fa2_transfer(
             self.data.objkt,
@@ -572,14 +582,58 @@ def test():
 
     scenario += swap
 
-    # illegal attempts
+    # no swaps or objkts yet
+    scenario.verify(swap.data.swap_id == 0)
+    scenario.verify(swap.data.objkt_id == 152)
+    scenario.verify(swap.data.swaps.contains(0) == False)
 
-    # exactly 1 paid swap should pass
+    # swap with objkt id above max must fail
     scenario += swap.swap(
         objkt_id = 123456,
         objkt_amount = 1,
         xtz_per_objkt = sp.utils.nat_to_mutez(1)
-    ).run(sender = seller.address, valid = True)
+    ).run(
+        sender = seller.address,
+        valid = False
+    )
+
+    # nothing changed because the swap failed as no swaps were created
+    scenario.verify(swap.data.swap_id == 0)
+    scenario.verify(swap.data.objkt_id == 152)
+    scenario.verify(swap.data.swaps.contains(0) == False)
+
+    # add an 1/1 objkt to the contract
+    # the address and the sender are both the creator
+    scenario += swap.mint_OBJKT(
+        address = creator.address,
+        amount = 1,
+        royalties = 200,
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = creator.address,
+        valid = True
+    )
+
+    # the mint was successful but still no swap
+    scenario.verify(swap.data.objkt_id == 153)
+    scenario.verify(swap.data.swap_id == 0)
+
+    # swap with new objkt id must pass
+    scenario += swap.swap(
+        objkt_id = 153,
+        objkt_amount = 1,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(
+        sender = seller.address,
+        valid = True
+    )
+
+    # swap was added
+    scenario.verify(swap.data.swaps.contains(0) == True)
+    scenario.verify(swap.data.swap_id == 1)
+    scenario.verify(swap.data.swaps.get(0).objkt_id == 153)
+
+    # scenario.verify(swap.data.swaps.objkt_id == 123456)
 
     # exactly 1 free swap should pass
     scenario += swap.swap(
@@ -587,6 +641,8 @@ def test():
         objkt_amount = 1,
         xtz_per_objkt = sp.utils.nat_to_mutez(0)
     ).run(sender = seller.address, valid = True)
+
+    scenario.verify(swap.data.swap_id == 2)
 
     # more than 1 swap should pass
     scenario += swap.swap(
