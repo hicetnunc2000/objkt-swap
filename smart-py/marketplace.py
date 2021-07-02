@@ -241,3 +241,79 @@ def test():
     # metadata
     # TODO how does this work? am i passing in the metadata correctly?
     # scenario.verify(swap.data.metadata.name == 'something')
+
+@sp.add_test("Test update manager entrypoint")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Update Manager Test")
+
+    # init test values
+    seller = sp.test_account("seller")
+    manager = sp.test_account("manager")
+    objkt = sp.test_account("objkt123")
+
+    creator = sp.test_account("creator")
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
+
+    fee = 25
+
+    swap = Marketplace(
+        objkt.address,
+        metadata,
+        manager.address,
+        fee
+    )
+
+    scenario += swap
+
+    anotherUser = sp.test_account("anotherUser")
+
+    # illegal attempts (self)
+    scenario += swap.update_manager(seller.address).run(sender = seller.address, valid = False)
+    scenario += swap.update_manager(objkt.address).run(sender = objkt.address, valid = False)
+
+    # illegal attempts (lateral)
+    scenario += swap.update_manager(seller.address).run(sender = objkt.address, valid = False)
+    scenario += swap.update_manager(anotherUser.address).run(sender = seller.address, valid = False)
+
+    # situational tests
+
+    # switch manager and confirm manager can no longer manage
+    newManager = sp.test_account("newManager")
+
+    # not valid to swap manager to anotherUser
+    scenario += swap.update_manager(anotherUser.address).run(sender = newManager.address, valid = False)
+
+    # valid for existing manager to change the manager
+    scenario += swap.update_manager(newManager.address).run(sender = manager.address, valid = True)
+
+    # now the new manager can change to anyone
+    scenario += swap.update_manager(anotherUser.address).run(sender = newManager.address, valid = True)
+
+    # but old manager can no longer change manager
+    scenario += swap.update_manager(seller.address).run(sender = manager.address, valid = False)
+
+
