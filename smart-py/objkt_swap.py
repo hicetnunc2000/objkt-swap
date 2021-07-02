@@ -879,3 +879,114 @@ def test():
 
     # swap still exists and was not cancelled
     scenario.verify(swap.data.swaps.contains(1) == True)
+
+    # TODO multiple edition tests
+
+@sp.add_test("Test collect swap")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Collect Swap Test")
+
+    # init test values
+    seller = sp.test_account("seller")
+    manager = sp.test_account("manager")
+    curator = sp.test_account("curator")
+    objkt = sp.test_account("objkt123")
+    hdao = sp.test_account("hdao")
+
+    creator = sp.test_account("creator")
+
+    # TODO how do i turn this metadata into the expected binary object?
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
+
+    swap = OBJKTSwap(
+        objkt.address,
+        hdao.address,
+        manager.address,
+        metadata,
+        curator.address
+    )
+
+    scenario += swap
+
+    # add an 1/1 objkt to the contract
+    # the address and the sender are both the creator
+    scenario += swap.mint_OBJKT(
+        address = creator.address,
+        amount = 1,
+        royalties = 200,
+        # how to turn json into this?
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = creator.address,
+        valid = True
+    )
+
+    scenario.verify(swap.data.swap_id == 0)
+    scenario.verify(swap.data.swaps.contains(0) == False)
+
+    # add a swap
+    scenario += swap.swap(
+        objkt_id = 153,
+        objkt_amount = 1,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(
+        sender = seller.address,
+        valid = True
+    )
+
+    scenario.verify(swap.data.swap_id == 1)
+    scenario.verify(swap.data.swaps.contains(0) == True)
+    scenario.verify(swap.data.swaps.contains(1) == False)
+
+    # try to collect own swap and fail
+    scenario += swap.collect(
+        objkt_amount = 1,
+        swap_id = 1
+    ).run(
+        sender = seller.address,
+        valid = False
+    )
+
+    # still exists
+    scenario.verify(swap.data.swap_id == 1)
+    scenario.verify(swap.data.swaps.contains(0) == True)
+    scenario.verify(swap.data.swaps.contains(1) == False)
+
+    # someone else collect
+    buyer = sp.test_account("buyer")
+
+    # this should pass ??
+    # TODO
+    scenario += swap.collect(
+        objkt_amount = 1,
+        swap_id = 0
+    ).run(
+        sender = buyer.address,
+        valid = True
+    )
+
+
