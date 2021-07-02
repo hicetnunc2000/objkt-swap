@@ -76,6 +76,11 @@ class OBJKTSwap(sp.Contract):
 
         # get the objkt
         # TODO how to get the details of the objkt???
+        # this is where i want to get the details of the objkt
+        # by id from its contract but i don't know how to do this
+        #
+        # my last attempt was something like this:
+        #
         # c = sp.record(
         #     token_id = params.objkt_id
         # )
@@ -88,7 +93,8 @@ class OBJKTSwap(sp.Contract):
         # sp.verify(params.objkt_id == c.token_id)
         # sp.verify(params.objkt_amount <= c.amount)
 
-        # sp.verify(params.objkt_id <= self.data.objkt_id)
+        sp.verify(params.objkt_id <= self.data.objkt_id)
+
         # the swap must carry a value of at least 0
         sp.verify(params.xtz_per_objkt >= sp.utils.nat_to_mutez(0))
 
@@ -749,3 +755,127 @@ def test():
     # scenario.verify(swap.data.swap_id == 4)
     # scenario.verify(swap.data.swaps.contains(4) == True)
     # scenario.verify(swap.data.swaps.contains(5) == False)
+    # TODO test the couunter tally
+
+
+@sp.add_test("Test cancel swap")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Cancel Swap Test")
+
+    # init test values
+    seller = sp.test_account("seller")
+    manager = sp.test_account("manager")
+    curator = sp.test_account("curator")
+    objkt = sp.test_account("objkt123")
+    hdao = sp.test_account("hdao")
+
+    creator = sp.test_account("creator")
+
+    # TODO how do i turn this metadata into the expected binary object?
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
+
+    swap = OBJKTSwap(
+        objkt.address,
+        hdao.address,
+        manager.address,
+        metadata,
+        curator.address
+    )
+
+    scenario += swap
+
+    # add an 1/1 objkt to the contract
+    # the address and the sender are both the creator
+    scenario += swap.mint_OBJKT(
+        address = creator.address,
+        amount = 1,
+        royalties = 200,
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = creator.address,
+        valid = True
+    )
+
+    # add a swap
+    scenario += swap.swap(
+        objkt_id = 153,
+        objkt_amount = 1,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(
+        sender = seller.address,
+        valid = True
+    )
+
+    scenario.verify(swap.data.swap_id == 1)
+    scenario.verify(swap.data.swaps.contains(0) == True)
+
+    # cancel the most recent one
+    # the index starts at 0 so is 1 less than the swap id at this point
+    scenario += swap.cancel_swap(0).run(
+        sender = seller.address,
+        valid = True
+    )
+
+    # this remain incremented
+    scenario.verify(swap.data.swap_id == 1)
+
+    # but the swap no longer exists
+    scenario.verify(swap.data.swaps.contains(0) == False)
+
+    # try cancel nonexistent
+    scenario += swap.cancel_swap(1535).run(
+        sender = seller.address,
+        valid = False
+    )
+
+    # make another swap now that there's a cancellation
+    scenario += swap.swap(
+        objkt_id = 153,
+        objkt_amount = 1,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(
+        sender = seller.address,
+        valid = True
+    )
+
+    # incremented
+    scenario.verify(swap.data.swap_id == 2)
+
+    # but only 1 swap that did not go into the same position the
+    # cancelled one was in originally
+    scenario.verify(swap.data.swaps.contains(0) == False)
+    scenario.verify(swap.data.swaps.contains(1) == True)
+    scenario.verify(swap.data.swaps.contains(2) == False)
+
+    # try to cancel someone elses swap
+    scenario += swap.cancel_swap(1).run(
+        sender = manager.address,
+        valid = False
+    )
+
+    # swap still exists and was not cancelled
+    scenario.verify(swap.data.swaps.contains(1) == True)
