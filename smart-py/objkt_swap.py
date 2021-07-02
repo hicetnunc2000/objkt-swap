@@ -157,9 +157,15 @@ class OBJKTSwap(sp.Contract):
             )
 
             sp.verify(
-                (params.objkt_amount == self.objkt_amount) &
-                (sp.amount == sp.utils.nat_to_mutez(self.amount)) &
-                (sp.amount > sp.tez(0))
+                (
+                    params.objkt_amount == self.objkt_amount
+                ) &
+                (
+                    sp.amount == sp.utils.nat_to_mutez(self.amount)
+                ) &
+                (
+                    sp.amount > sp.tez(0)
+                )
             )
 
             # calculate fees and royalties
@@ -950,7 +956,7 @@ def test():
 
     # add a swap
     scenario += swap.swap(
-        objkt_id = 153,
+        objkt_id = 152,
         objkt_amount = 1,
         xtz_per_objkt = sp.utils.nat_to_mutez(1)
     ).run(
@@ -968,6 +974,7 @@ def test():
         swap_id = 1
     ).run(
         sender = seller.address,
+        amount = sp.mutez(1),
         valid = False
     )
 
@@ -979,14 +986,37 @@ def test():
     # someone else collect
     buyer = sp.test_account("buyer")
 
-    # this should pass ??
-    # TODO
+    # this should pass
     scenario += swap.collect(
         objkt_amount = 1,
         swap_id = 0
     ).run(
         sender = buyer.address,
+        amount = sp.mutez(1),
         valid = True
     )
 
+    scenario.verify(swap.data.swap_id == 1)
+    scenario.verify(swap.data.swaps.contains(0) == False)
+    scenario.verify(swap.data.swaps.contains(1) == False)
 
+    # but only once because it's been collected
+    scenario += swap.collect(
+        objkt_amount = 1,
+        swap_id = 0
+    ).run(
+        sender = buyer.address,
+        amount = sp.mutez(1),
+        valid = False
+    )
+
+    # someone else try to swap the new owners objkt
+    # TODO this should fail
+    # scenario += swap.swap(
+    #     objkt_id = 152,
+    #     objkt_amount = 1,
+    #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    # ).run(
+    #     sender = seller.address,
+    #     valid = False
+    # )
