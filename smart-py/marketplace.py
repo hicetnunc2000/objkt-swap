@@ -1,3 +1,5 @@
+import smartpy as sp
+
 class Marketplace(sp.Contract):
     def __init__(self, objkt, metadata, manager, fee):
         self.init(
@@ -180,3 +182,62 @@ class Marketplace(sp.Contract):
             sp.mutez(0),
             c
         )
+
+@sp.add_test("Class constructs with default values")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Marketplace Test")
+
+    # init test values
+    objkt = sp.test_account("objkt123")
+    manager = sp.test_account("manager")
+    seller = sp.test_account("seller")
+
+    creator = sp.test_account("creator")
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
+
+    fee = 25
+
+    swap = Marketplace(
+        objkt.address,
+        metadata,
+        manager.address,
+        fee
+    )
+
+    scenario += swap
+
+    # default variables that get set in the contract constructor
+    # TODO find out if these are the intended initial values
+    scenario.verify(swap.data.counter == 500000)
+
+    # addresses are as expected
+    scenario.verify(swap.data.manager == manager.address)
+    scenario.verify(swap.data.objkt == objkt.address)
+
+    # metadata
+    # TODO how does this work? am i passing in the metadata correctly?
+    # scenario.verify(swap.data.metadata.name == 'something')
