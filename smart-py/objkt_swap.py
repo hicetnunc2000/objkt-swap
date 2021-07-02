@@ -135,8 +135,8 @@ class OBJKTSwap(sp.Contract):
     @sp.entry_point
     def collect(self, params):
         sp.verify(
-            (params.objkt_amount > 0) &
-            # (params.objkt_amount == 1) &
+            # (params.objkt_amount > 0) &
+            (params.objkt_amount == 1) &
             (sp.sender != self.data.swaps[params.swap_id].issuer)
         )
 
@@ -173,7 +173,9 @@ class OBJKTSwap(sp.Contract):
                 sp.ediv(
                     sp.utils.nat_to_mutez(self.amount),
                     sp.utils.nat_to_mutez(1)).open_some()
-                ) * (self.data.royalties[self.data.swaps[params.swap_id].objkt_id].royalties + 25) / 1000
+                ) * (
+                    self.data.royalties[self.data.swaps[params.swap_id].objkt_id].royalties + 25
+                ) / 1000
 
             self.royalties = self.data.royalties[self.data.swaps[params.swap_id].objkt_id].royalties * self.fee / (self.data.royalties[self.data.swaps[params.swap_id].objkt_id].royalties + 25)
 
@@ -690,8 +692,6 @@ def test():
     scenario.verify(swap.data.swap_id == 1)
     scenario.verify(swap.data.swaps.get(0).objkt_id == 153)
 
-    # scenario.verify(swap.data.swaps.objkt_id == 123456)
-
     # swap should now fail because there is only 1 objkt available
     # TODO this currently passes and a swap gets added breaking all
     # of the tests that have been commented out below
@@ -761,8 +761,8 @@ def test():
     # scenario.verify(swap.data.swap_id == 4)
     # scenario.verify(swap.data.swaps.contains(4) == True)
     # scenario.verify(swap.data.swaps.contains(5) == False)
-    # TODO test the couunter tally
 
+    # TODO test the couunter tally
 
 @sp.add_test("Test cancel swap")
 def test():
@@ -1017,6 +1017,28 @@ def test():
     #     objkt_amount = 1,
     #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
     # ).run(
-    #     sender = seller.address,
+    #     sender = manager.address,
     #     valid = False
     # )
+    # scenario.verify(swap.data.swap_id == 1)
+    # scenario.verify(swap.data.swaps.contains(0) == False)
+    # scenario.verify(swap.data.swaps.contains(1) == False)
+
+    # new owner makes a swap
+    scenario += swap.swap(
+        objkt_id = 152,
+        objkt_amount = 1,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(
+        sender = buyer.address,
+        valid = True
+    )
+
+    scenario.verify(swap.data.swap_id == 2)
+    scenario.verify(swap.data.swaps.contains(0) == False)
+    scenario.verify(swap.data.swaps.contains(1) == True)
+    scenario.verify(swap.data.swaps.contains(2) == False)
+
+    # TODO multiple edition tests
+
+
