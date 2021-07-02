@@ -316,4 +316,190 @@ def test():
     # but old manager can no longer change manager
     scenario += swap.update_manager(seller.address).run(sender = manager.address, valid = False)
 
+@sp.add_test("Test swap")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Swap Test")
+
+    # init test values
+    seller = sp.test_account("seller")
+    manager = sp.test_account("manager")
+    objkt = sp.test_account("objkt123")
+
+    creator = sp.test_account("creator")
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
+
+    fee = 25
+
+    swap = Marketplace(
+        objkt.address,
+        metadata,
+        manager.address,
+        fee
+    )
+
+    scenario += swap
+
+    # no swaps or objkts yet
+    scenario.verify(swap.data.counter == 500000)
+    scenario.verify(swap.data.swaps.contains(0) == False)
+
+    # swap with objkt id above max must fail
+    scenario += swap.swap(
+        objkt_id = 153,
+        objkt_amount = 2,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(
+        sender = seller.address,
+        valid = False
+    )
+
+    # nothing changed because the swap failed as no swaps were created
+    scenario.verify(swap.data.counter == 500000)
+    scenario.verify(swap.data.swaps.contains(0) == False)
+
+    # TODO how to import this method from objkt_swap.py?
+
+    # add an 1/1 objkt to the contract
+    # the address and the sender are both the creator
+    scenario += swap.mint_OBJKT(
+        address = creator.address,
+        amount = 1,
+        royalties = 200,
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = creator.address,
+        valid = True
+    )
+
+    # the mint was successful but still no swap
+    scenario.verify(swap.data.objkt_id == 153)
+    scenario.verify(swap.data.swap_id == 0)
+    scenario.verify(swap.data.swaps.contains(0) == False)
+
+    # try swap more objkts than exist must fail
+    # TODO this should fail and currently does not
+    # scenario += swap.swap(
+    #     objkt_id = 153,
+    #     objkt_amount = 2,
+    #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    # ).run(
+    #     sender = seller.address,
+    #     valid = False
+    # )
+
+    # swap id should not have incremented
+    # scenario.verify(swap.data.swaps.contains(0) == False)
+
+    # swap with new objkt id must pass
+    scenario += swap.swap(
+        objkt_id = 153,
+        objkt_amount = 1,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(
+        sender = seller.address,
+        valid = True
+    )
+
+    # one swap was added
+    scenario.verify(swap.data.swaps.contains(0) == True)
+    scenario.verify(swap.data.swaps.contains(1) == False)
+    scenario.verify(swap.data.swap_id == 1)
+    scenario.verify(swap.data.swaps.get(0).objkt_id == 153)
+
+    # swap should now fail because there is only 1 objkt available
+    # TODO this currently passes and a swap gets added breaking all
+    # of the tests that have been commented out below
+    #
+    # tests below may be making incorrect assumptions, do not assume they
+    # are correct because i haven't been able to continue due to this
+    # first bug
+    #
+    # scenario += swap.swap(
+        # objkt_id = 153,
+        # objkt_amount = 1,
+        # xtz_per_objkt = sp.utils.nat_to_mutez(2)
+    # ).run(sender = seller.address, valid = False)
+    #
+    # # swap should not have been added because the swap should not
+    # exist anymore but it gets added
+    #
+    # scenario.verify(swap.data.swap_id == 1)
+    # scenario.verify(swap.data.swaps.contains(1) == False)
+    #
+    # # add a multiple edition from the same creator
+    # # the address and the sender are both the creator
+    # scenario += swap.mint_OBJKT(
+    #     address = creator.address,
+    #     amount = 3,
+    #     royalties = 250,
+    #     metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    # ).run(
+    #     sender = creator.address,
+    #     valid = True
+    # )
+    #
+    # scenario.verify(swap.data.objkt_id == 154)
+    # scenario.verify(swap.data.swap_id == 1)
+    # scenario.verify(swap.data.swaps.contains(1) == False)
+    #
+    # # claim multiple editions
+    # scenario += swap.swap(
+    #     objkt_id = 154,
+    #     objkt_amount = 2,
+    #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    # ).run(sender = seller.address, valid = False)
+    #
+    # # there should be 2 more swaps
+    # scenario.verify(swap.data.objkt_id == 154)
+    # scenario.verify(swap.data.swap_id == 3)
+    # scenario.verify(swap.data.swaps.contains(3) == True)
+    # scenario.verify(swap.data.swaps.contains(4) == False)
+    #
+    # # zero swaps for the last one should fail
+    # scenario += swap.swap(
+    #     objkt_id = 154,
+    #     objkt_amount = 0,
+    #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    # ).run(sender = seller.address, valid = False)
+    #
+    # # one swap should pass
+    # # TODO add and test validation that sender is owner of objkt
+    # scenario += swap.swap(
+    #     objkt_id = 123456,
+    #     objkt_amount = 1,
+    #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    # ).run(sender = seller.address, valid = True)
+    #
+    # # one more
+    # scenario.verify(swap.data.objkt_id == 155)
+    # scenario.verify(swap.data.swap_id == 4)
+    # scenario.verify(swap.data.swaps.contains(4) == True)
+    # scenario.verify(swap.data.swaps.contains(5) == False)
+
+    # TODO test the couunter tally
+
 
