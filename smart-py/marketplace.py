@@ -927,13 +927,13 @@ def test():
 
     # the new swap is still present
     scenario.verify(swap.data.swaps.get(500001).objkt_id == 153)
-    scenario.verify(swap.data.swaps.get(500001).objkt_amount == 9)
+    scenario.verify(swap.data.swaps.get(500001).objkt_amount == 20)
     scenario.verify(swap.data.swaps.get(500001).royalties == 200)
     scenario.verify(swap.data.swaps.get(500001).xtz_per_objkt == sp.utils.nat_to_mutez(3))
 
     # collect with enough tez
     scenario += swap.collect(
-        swap_id = 500000,
+        swap_id = 500001,
     ).run(
         sender = seller.address,
         amount = sp.utils.nat_to_mutez(3),
@@ -941,5 +941,14 @@ def test():
     )
 
     # the swap is still present but the available objkts is now 8
-    scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
-    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 8)
+    scenario.verify(swap.data.swaps.get(500001).objkt_id == 153)
+    scenario.verify(swap.data.swaps.get(500001).objkt_amount == 19)
+
+    # cancel the swap
+    scenario += swap.cancel_swap(500001).run(
+        sender = seller.address,
+        valid = True
+    )
+
+    # it's gone now
+    scenario.verify(swap.data.swaps.contains(500001) == False)
