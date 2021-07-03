@@ -26,7 +26,7 @@ class Marketplace(sp.Contract):
         sp.verify(
             (params.objkt_amount > 0) &
             (
-                (params.royalties >= 0) | (params.royalties <= 250)
+                (params.royalties >= 0) & (params.royalties <= 250)
             )
         )
 
@@ -382,6 +382,9 @@ def test():
     scenario.verify(swap.data.swaps.contains(0) == False)
 
     # TODO how to import this method from objkt_swap.py?
+    #
+    # This is where I got stuck, I need to be able to create
+    # objkts to continue testing
 
     # add an 1/1 objkt to the contract
     # the address and the sender are both the creator
