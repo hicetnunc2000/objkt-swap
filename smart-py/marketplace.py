@@ -603,5 +603,104 @@ def test():
     # scenario.verify(swap.data.swaps.contains(4) == True)
     # scenario.verify(swap.data.swaps.contains(5) == False)
 
-    # TODO test the couunter tally
+@sp.add_test("Test collect")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Collect Test")
 
+    # init test values
+    seller = sp.test_account("seller")
+    buyer = sp.test_account("buyer")
+    manager = sp.test_account("manager")
+    objkt = sp.test_account("objkt123")
+
+    creator = sp.test_account("creator")
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
+
+    fee = 25
+
+    swap = Marketplace(
+        objkt.address,
+        metadata,
+        manager.address,
+        fee
+    )
+
+    scenario += swap
+
+    # no swaps yet
+    scenario.verify(swap.data.counter == 500000)
+    scenario.verify(swap.data.swaps.contains(500000) == False)
+
+    scenario += swap.swap(
+        creator=creator.address,
+        royalties=250,
+        objkt_id = 153,
+        objkt_amount = 1,
+        xtz_per_objkt = sp.utils.nat_to_mutez(2)
+    ).run(
+        sender = seller.address,
+        valid = True
+    )
+
+    # one swap was added
+    scenario.verify(swap.data.swaps.contains(500000) == True)
+    scenario.verify(swap.data.swaps.contains(500001) == False)
+    scenario.verify(swap.data.counter == 500001)
+
+    # data is as expected inside the swap
+    scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
+    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 1)
+    scenario.verify(swap.data.swaps.get(500000).royalties == 250)
+    scenario.verify(swap.data.swaps.get(500000).xtz_per_objkt == sp.utils.nat_to_mutez(2))
+
+    # try to collect the swap without enough tez
+    scenario += swap.collect(
+        swap_id = 500000,
+    ).run(
+        sender = seller.address,
+        amount = sp.utils.nat_to_mutez(1),
+        valid = False
+    )
+
+    # swap is still available
+    scenario.verify(swap.data.swaps.contains(500000) == True)
+    scenario.verify(swap.data.swaps.contains(500001) == False)
+
+    # collect with enough tez
+    scenario += swap.collect(
+        swap_id = 500000,
+    ).run(
+        sender = seller.address,
+        amount = sp.utils.nat_to_mutez(2),
+        valid = True
+    )
+
+    # the swap is still present but the available objkts is now 0
+    scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
+    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 0)
+    scenario.verify(swap.data.swaps.get(500000).royalties == 250)
+    scenario.verify(swap.data.swaps.get(500000).xtz_per_objkt == sp.utils.nat_to_mutez(2))
