@@ -316,6 +316,69 @@ def test():
     # but old manager can no longer change manager
     scenario += swap.update_manager(seller.address).run(sender = manager.address, valid = False)
 
+@sp.add_test("Test update fee entrypoint")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Update Fee Test")
+
+    # init test values
+    seller = sp.test_account("seller")
+    manager = sp.test_account("manager")
+    objkt = sp.test_account("objkt123")
+
+    creator = sp.test_account("creator")
+    # TODO how to turn into the binary? or is the binary a pointer?
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
+
+    fee = 25
+
+    swap = Marketplace(
+        objkt.address,
+        metadata,
+        manager.address,
+        fee
+    )
+
+    scenario += swap
+
+    scenario.verify(swap.data.fee == 25)
+
+    # illegal attempts (lateral)
+    scenario += swap.update_fee(3).run(sender = objkt.address, valid = False)
+    scenario.verify(swap.data.fee == 25)
+
+    scenario += swap.update_fee(3).run(sender = seller.address, valid = False)
+
+    scenario.verify(swap.data.fee == 25)
+
+    # valid for manager to change the fee
+    scenario += swap.update_fee(3).run(sender = manager.address, valid = True)
+
+    scenario.verify(swap.data.fee == 3)
+
 @sp.add_test("Test swap")
 def test():
     # init test and create html output
