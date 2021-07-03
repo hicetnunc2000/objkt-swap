@@ -368,6 +368,7 @@ def test():
     scenario.verify(swap.data.swaps.contains(500000) == False)
 
     # swap with objkt id above max must fail
+    # there are no objkts at this stage so should fail
     scenario += swap.swap(
         creator=creator.address,
         royalties=250,
@@ -381,6 +382,8 @@ def test():
 
     # nothing changed because the swap failed as no swaps were created
     # TODO the counter should not increment!
+    # .... but maybe it does (or doesn't matter)
+    #      i'm not a contract expert
     scenario.verify(swap.data.counter == 500001)
 
     # TODO this should not exist!
