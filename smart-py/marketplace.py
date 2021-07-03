@@ -30,6 +30,10 @@ class Marketplace(sp.Contract):
             )
         )
 
+        # TODO
+        # i want to validate the royalties here to make sure they match
+        # what is set on the objkt when it is minted
+
         self.fa2_transfer(
             self.data.objkt,
             sp.sender,
@@ -802,6 +806,130 @@ def test():
     scenario.verify(swap.data.swaps.get(500000).objkt_amount == 9)
     scenario.verify(swap.data.swaps.get(500000).royalties == 250)
     scenario.verify(swap.data.swaps.get(500000).xtz_per_objkt == sp.utils.nat_to_mutez(3))
+
+    # collect with enough tez
+    scenario += swap.collect(
+        swap_id = 500000,
+    ).run(
+        sender = seller.address,
+        amount = sp.utils.nat_to_mutez(3),
+        valid = True
+    )
+
+    # the swap is still present but the available objkts is now 8
+    scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
+    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 8)
+
+@sp.add_test("Test cancel swap")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Cancel Swap Test")
+
+    # init test values
+    seller = sp.test_account("seller")
+    buyer = sp.test_account("buyer")
+    manager = sp.test_account("manager")
+    objkt = sp.test_account("objkt123")
+
+    creator = sp.test_account("creator")
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
+
+    fee = 25
+
+    swap = Marketplace(
+        objkt.address,
+        metadata,
+        manager.address,
+        fee
+    )
+
+    scenario += swap
+
+    scenario += swap.swap(
+        creator=creator.address,
+        royalties=250,
+        objkt_id = 153,
+        objkt_amount = 10,
+        xtz_per_objkt = sp.utils.nat_to_mutez(3)
+    ).run(
+        sender = seller.address,
+        valid = True
+    )
+
+    # one swap was added
+    scenario.verify(swap.data.swaps.contains(500000) == True)
+    scenario.verify(swap.data.swaps.contains(500001) == False)
+    scenario.verify(swap.data.counter == 500001)
+
+    # data is as expected inside the swap
+    scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
+    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 10)
+    scenario.verify(swap.data.swaps.get(500000).royalties == 250)
+    scenario.verify(swap.data.swaps.get(500000).xtz_per_objkt == sp.utils.nat_to_mutez(3))
+
+    # cancel the swap
+    scenario += swap.cancel_swap(500000).run(
+        sender = seller.address,
+        valid = True
+    )
+
+    # the swap no longer exists
+    scenario.verify(swap.data.swaps.contains(500000) == False)
+
+    # try to collect cancelled swap with enough tez
+    scenario += swap.collect(
+        swap_id = 500000,
+    ).run(
+        sender = seller.address,
+        amount = sp.utils.nat_to_mutez(3),
+        valid = False
+    )
+
+    # add another swap
+    # TODO we really need to check if the number of items being swapped
+    # is actually valid for the objkt and if the person swapping actually
+    # owns the item they're swapping
+    #
+    # this test should actually FAIL because there are not 20 copies
+    scenario += swap.swap(
+        creator=creator.address,
+        royalties=200,
+        objkt_id = 153,
+        objkt_amount = 20,
+        xtz_per_objkt = sp.utils.nat_to_mutez(3)
+    ).run(
+        sender = seller.address,
+        valid = True
+    )
+
+    # the new swap is still present
+    scenario.verify(swap.data.swaps.get(500001).objkt_id == 153)
+    scenario.verify(swap.data.swaps.get(500001).objkt_amount == 9)
+    scenario.verify(swap.data.swaps.get(500001).royalties == 200)
+    scenario.verify(swap.data.swaps.get(500001).xtz_per_objkt == sp.utils.nat_to_mutez(3))
 
     # collect with enough tez
     scenario += swap.collect(
