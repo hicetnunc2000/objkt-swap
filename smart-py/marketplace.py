@@ -66,6 +66,7 @@ class Marketplace(sp.Contract):
                         ).open_some()
                     )
                 )
+            # and verify there are objkts available for swap
             ) & (
                 self.data.swaps[params.swap_id].objkt_amount > 0
             )
@@ -774,7 +775,7 @@ def test():
         creator=creator.address,
         royalties=250,
         objkt_id = 153,
-        objkt_amount = 10,
+        objkt_amount = 4,
         xtz_per_objkt = sp.utils.nat_to_mutez(3)
     ).run(
         sender = seller.address,
@@ -788,7 +789,34 @@ def test():
 
     # data is as expected inside the swap
     scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
-    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 10)
+    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 4)
+    scenario.verify(swap.data.swaps.get(500000).royalties == 250)
+    scenario.verify(swap.data.swaps.get(500000).xtz_per_objkt == sp.utils.nat_to_mutez(3))
+
+    # fail to collect own swap
+    scenario += swap.collect(
+        swap_id = 500000,
+    ).run(
+        sender = creator.address,
+        amount = sp.utils.nat_to_mutez(3),
+        valid = False
+    )
+
+    # still 4 copies
+    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 4)
+
+    # collect with enough tez
+    scenario += swap.collect(
+        swap_id = 500000,
+    ).run(
+        sender = seller.address,
+        amount = sp.utils.nat_to_mutez(3),
+        valid = True
+    )
+
+    # the swap is still present but the available objkts is now 3
+    scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
+    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 3)
     scenario.verify(swap.data.swaps.get(500000).royalties == 250)
     scenario.verify(swap.data.swaps.get(500000).xtz_per_objkt == sp.utils.nat_to_mutez(3))
 
@@ -801,13 +829,11 @@ def test():
         valid = True
     )
 
-    # the swap is still present but the available objkts is now 9
+    # the swap is still present but the available objkts is now 2
     scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
-    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 9)
-    scenario.verify(swap.data.swaps.get(500000).royalties == 250)
-    scenario.verify(swap.data.swaps.get(500000).xtz_per_objkt == sp.utils.nat_to_mutez(3))
+    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 2)
 
-    # collect with enough tez
+    # second last copy
     scenario += swap.collect(
         swap_id = 500000,
     ).run(
@@ -816,9 +842,34 @@ def test():
         valid = True
     )
 
-    # the swap is still present but the available objkts is now 8
+    # the swap is still present but the available objkts is now 1
     scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
-    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 8)
+    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 1)
+
+    # final edition
+    scenario += swap.collect(
+        swap_id = 500000,
+    ).run(
+        sender = seller.address,
+        amount = sp.utils.nat_to_mutez(3),
+        valid = True
+    )
+
+    # the swap is still present but the available objkts is now 0
+    scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
+    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 0)
+
+    # try again and fail
+    scenario += swap.collect(
+        swap_id = 500000,
+    ).run(
+        sender = seller.address,
+        amount = sp.utils.nat_to_mutez(3),
+        valid = False
+    )
+
+    # still 0
+    scenario.verify(swap.data.swaps.get(500000).objkt_amount == 0)
 
 @sp.add_test("Test cancel swap")
 def test():
