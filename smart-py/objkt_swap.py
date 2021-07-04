@@ -263,6 +263,8 @@ class OBJKTSwap(sp.Contract):
 
         self.data.objkt_id += 1
 
+    # TODO i want an entrypoint i can send an objkt id to and get back
+    # data about the objkt like max editions, issuer and royalty info
     # @sp.entry_point
     # def details(self, params):
     #     print('details')
