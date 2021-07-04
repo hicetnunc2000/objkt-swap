@@ -1125,6 +1125,9 @@ def test():
     # hasn't changed
     scenario.verify(swap.data.objkt_id == 152)
 
+    # no royalties are tracked yet
+    scenario.verify(swap.data.royalties.contains(152) == False)
+
     # add an 1/1 objkt
     scenario += swap.mint_OBJKT(
         address = creator.address,
@@ -1137,8 +1140,16 @@ def test():
         valid = True
     )
 
-    scenario.verify(swap.data.objkt_id == 153)
+    # royalty settings has been recorded for the new objkt
+    scenario.verify(swap.data.royalties.contains(152) == True)
+    scenario.verify(swap.data.royalties.get(152).issuer == creator.address)
+    scenario.verify(swap.data.royalties.get(152).royalties == 200)
 
+    # incrementer has gone up
+    scenario.verify(swap.data.objkt_id == 153)
+    scenario.verify(swap.data.royalties.contains(153) == False)
+
+    # still no swap
     scenario.verify(swap.data.swap_id == 0)
     scenario.verify(swap.data.swaps.contains(0) == False)
 
@@ -1157,6 +1168,7 @@ def test():
     # no change
     scenario.verify(swap.data.swaps.contains(0) == False)
     scenario.verify(swap.data.objkt_id == 153)
+    scenario.verify(swap.data.royalties.contains(153) == False)
 
     # try to mint an objkt with too many royalties
     scenario += swap.mint_OBJKT(
@@ -1172,6 +1184,7 @@ def test():
 
     # no change
     scenario.verify(swap.data.objkt_id == 153)
+    scenario.verify(swap.data.royalties.contains(153) == False)
 
     # try to mint without metadata and fail
     #
