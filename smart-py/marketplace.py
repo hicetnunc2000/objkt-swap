@@ -1,3 +1,6 @@
+import smartpy as sp
+
+
 class Marketplace(sp.Contract):
     def __init__(self, objkt, metadata, manager, fee):
         self.init(
@@ -6,8 +9,11 @@ class Marketplace(sp.Contract):
             manager = manager,
             swaps = sp.big_map(tkey=sp.TNat, tvalue=sp.TRecord(issuer=sp.TAddress, objkt_amount=sp.TNat, objkt_id=sp.TNat, xtz_per_objkt=sp.TMutez, royalties=sp.TNat, creator=sp.TAddress)),
             counter = 500000,
-            fee = fee
-            )
+            fee = fee,
+            fee_account = manager,
+            secondary_accounts = sp.set([manager]),
+            last_ping = sp.timestamp(0)
+        )
             
     @sp.entry_point
     def swap(self, params):
@@ -34,7 +40,7 @@ class Marketplace(sp.Contract):
             sp.send(self.data.swaps[params.swap_id].creator, sp.utils.nat_to_mutez(self.royalties))
                 
             # send management fees
-            sp.send(self.data.manager, sp.utils.nat_to_mutez(abs(self.fee - self.royalties)))
+            sp.send(self.data.fee_account, sp.utils.nat_to_mutez(abs(self.fee - self.royalties)))
                 
             # send value to issuer
             sp.send(self.data.swaps[params.swap_id].issuer, sp.amount - sp.utils.nat_to_mutez(self.fee))
@@ -53,12 +59,70 @@ class Marketplace(sp.Contract):
     def update_fee(self, params):
         sp.verify(sp.sender == self.data.manager)
         self.data.fee = params
-        
+
+    @sp.entry_point
+    def update_fee_account(self, params):
+        sp.verify(sp.sender == self.data.manager)
+        self.data.fee_account= params
+
     @sp.entry_point
     def update_manager(self, params):
-        sp.verify(sp.sender == self.data.manager)
+        sp.if sp.now - self.data.last_ping > 100 * 24 * 3600:
+            sp.verify(self.data.secondary_accounts.contains(sp.sender))
+        sp.else:
+            sp.verify(sp.sender == self.data.manager)
+
         self.data.manager = params
-        
+        self.data.secondary_accounts.add(params)
+
+    @sp.entry_point
+    def add_secondary_account(self, params):
+        sp.verify(sp.sender == self.data.manager)
+        self.data.secondary_accounts.add(params)
+
+    @sp.entry_point
+    def remove_secondary_account(self, params):
+        sp.verify(sp.sender == self.data.manager)
+        self.data.secondary_accounts.remove(params)
+
+    @sp.entry_point
+    def ping(self):
+        sp.verify(sp.sender == self.data.manager)
+        self.data.last_ping = sp.now
+
     def fa2_transfer(self, fa2, from_, to_, objkt_id, objkt_amount):
         c = sp.contract(sp.TList(sp.TRecord(from_=sp.TAddress, txs=sp.TList(sp.TRecord(amount=sp.TNat, to_=sp.TAddress, token_id=sp.TNat).layout(("to_", ("token_id", "amount")))))), fa2, entry_point='transfer').open_some()
         sp.transfer(sp.list([sp.record(from_=from_, txs=sp.list([sp.record(amount=objkt_amount, to_=to_, token_id=objkt_id)]))]), sp.mutez(0), c)
+
+
+@sp.add_test(name="MarketplaceTest")
+def test():
+    # Define soeme of the test accounts
+    objkt = sp.test_account("objkt")
+    admin = sp.test_account("admin")
+    secondary_account = sp.test_account("secondary_account")
+    non_secondary_account = sp.test_account("non_secondary_account")
+
+    # Initialize the contract
+    c = Marketplace(objkt.address, "metadata", admin.address, 25)
+
+    scenario = sp.test_scenario()
+    scenario.h1("Marketplace")
+    scenario += c
+
+    # Ping the contract to initialize the timestamp
+    scenario += c.ping().run(sender=admin, now=sp.timestamp(100))
+    scenario.verify(c.data.last_ping == sp.timestamp(100))
+
+    # Add a new secondary account
+    scenario += c.add_secondary_account(secondary_account.address).run(sender=admin)
+    scenario.verify(c.data.secondary_accounts.contains(secondary_account.address))
+    scenario.verify(c.data.secondary_accounts.contains(admin.address))
+
+    # Check that the secondary account cannot update the manager
+    scenario += c.update_manager(secondary_account.address).run(sender=secondary_account, valid=False)
+    scenario.verify(c.data.manager == admin.address)
+
+    # Check that the secondary account can update the manager if there was no ping in a long time
+    scenario += c.update_manager(secondary_account.address).run(sender=secondary_account, now=sp.timestamp(100 +  100 * 24 * 3600 + 1))
+    scenario.verify(c.data.manager == secondary_account.address)
