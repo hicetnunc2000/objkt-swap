@@ -230,7 +230,8 @@ class OBJKTSwap(sp.Contract):
                 # max royalty
                 # 250 is actually 25.0%
                 (params.royalties <= 250)
-            )
+            ) &
+            (sp.sender == params.address)
         )
 
         c = sp.contract(
@@ -1142,23 +1143,20 @@ def test():
     scenario.verify(swap.data.swaps.contains(0) == False)
 
     # try to mint an objkt on behalf of someone else and fail
-    # TODO currently possible to mint objkts on behalf of others
-    # This is very serious, and a check needs to be added
-    #
-    # scenario += swap.mint_OBJKT(
-    #     address = creator.address,
-    #     amount = 1,
-    #     royalties = 200,
-    #     # how to turn json into this?
-    #     metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
-    # ).run(
-    #     sender = manager.address,
-    #     valid = False
-    # )
-    #
-    # # no change
-    # scenario.verify(swap.data.swaps.contains(0) == False)
-    # scenario.verify(swap.data.objkt_id == 153)
+    scenario += swap.mint_OBJKT(
+        address = creator.address,
+        amount = 1,
+        royalties = 200,
+        # how to turn json into this?
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = manager.address,
+        valid = False
+    )
+
+    # no change
+    scenario.verify(swap.data.swaps.contains(0) == False)
+    scenario.verify(swap.data.objkt_id == 153)
 
     # try to mint an objkt with too many royalties
     scenario += swap.mint_OBJKT(
