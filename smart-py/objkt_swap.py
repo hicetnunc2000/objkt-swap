@@ -1172,3 +1172,18 @@ def test():
 
     # no change
     scenario.verify(swap.data.objkt_id == 153)
+
+    # try to mint without metadata and fail
+    #
+    # TODO null metadata should fail but passes currently
+    #
+    # scenario += swap.mint_OBJKT(
+    #     address = creator.address,
+    #     amount = 1,
+    #     royalties = 200,
+    #     # how to turn json into this?
+    #     metadata = sp.bytes('0x00')
+    # ).run(
+    #     sender = creator.address,
+    #     valid = False
+    # )
