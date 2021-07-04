@@ -223,14 +223,14 @@ class OBJKTSwap(sp.Contract):
         sp.verify(
             # at least 1 objkt
             (params.amount > 0) &
+            # no more than 10l
+            (params.amount <= 10000) &
             (
                 (params.royalties >= 0) &
                 # max royalty
                 # 250 is actually 25.0%
                 (params.royalties <= 250)
-            ) &
-            # at most 10k objkts
-            (params.amount <= 10000)
+            )
         )
 
         c = sp.contract(
@@ -1041,4 +1041,136 @@ def test():
 
     # TODO multiple edition tests
 
+@sp.add_test("Test mint")
+def test():
+    # init test and create html output
+    scenario = sp.test_scenario()
+    scenario.h1("Mint Objkt Test")
 
+    # init test values
+    seller = sp.test_account("seller")
+    manager = sp.test_account("manager")
+    curator = sp.test_account("curator")
+    objkt = sp.test_account("objkt123")
+    hdao = sp.test_account("hdao")
+
+    creator = sp.test_account("creator")
+
+    # TODO how do i turn this metadata into the expected binary object?
+    metadata = sp.record(
+        name = "test",
+        description = "test",
+        tags = [
+            'test'
+        ],
+        symbol = 'OBJKT',
+        artifactUri = "ipfs://test",
+        displayUri = "ipfs://test",
+        thumbnailUri = "ipfs://test",
+        creators = [
+            creator.address
+        ],
+        formats = [
+            {
+                "uri":"ipfs://test",
+                "mimeType":"image/png"
+            }
+        ],
+        decimals = 0,
+        isBooleanAmount = False,
+        shouldPreferSymbol = False
+    )
+
+    swap = OBJKTSwap(
+        objkt.address,
+        hdao.address,
+        manager.address,
+        metadata,
+        curator.address
+    )
+
+    scenario += swap
+
+    scenario.verify(swap.data.objkt_id == 152)
+
+    # try add 0 copies and fail
+    # the address and the sender are both the creator
+    scenario += swap.mint_OBJKT(
+        address = creator.address,
+        amount = 0,
+        royalties = 200,
+        # how to turn json into this?
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = creator.address,
+        valid = False
+    )
+
+    # hasn't changed
+    scenario.verify(swap.data.objkt_id == 152)
+
+    # try add more than 10k
+    scenario += swap.mint_OBJKT(
+        address = creator.address,
+        amount = 1000000,
+        royalties = 200,
+        # how to turn json into this?
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = creator.address,
+        valid = False
+    )
+
+    # hasn't changed
+    scenario.verify(swap.data.objkt_id == 152)
+
+    # add an 1/1 objkt
+    scenario += swap.mint_OBJKT(
+        address = creator.address,
+        amount = 1,
+        royalties = 200,
+        # how to turn json into this?
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = creator.address,
+        valid = True
+    )
+
+    scenario.verify(swap.data.objkt_id == 153)
+
+    scenario.verify(swap.data.swap_id == 0)
+    scenario.verify(swap.data.swaps.contains(0) == False)
+
+    # try to mint an objkt on behalf of someone else and fail
+    # TODO currently possible to mint objkts on behalf of others
+    # This is very serious, and a check needs to be added
+    #
+    # scenario += swap.mint_OBJKT(
+    #     address = creator.address,
+    #     amount = 1,
+    #     royalties = 200,
+    #     # how to turn json into this?
+    #     metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    # ).run(
+    #     sender = manager.address,
+    #     valid = False
+    # )
+    #
+    # # no change
+    # scenario.verify(swap.data.swaps.contains(0) == False)
+    # scenario.verify(swap.data.objkt_id == 153)
+
+    # try to mint an objkt with too many royalties
+    scenario += swap.mint_OBJKT(
+        address = creator.address,
+        amount = 2,
+        royalties = 300,
+        # how to turn json into this?
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = creator.address,
+        valid = False
+    )
+
+    # no change
+    scenario.verify(swap.data.objkt_id == 153)

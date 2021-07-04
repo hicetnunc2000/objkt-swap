@@ -914,6 +914,7 @@ def test():
     # owns the item they're swapping
     #
     # this test should actually FAIL because there are not 20 copies
+    # however i see no way to easily check this information
     scenario += swap.swap(
         creator=creator.address,
         royalties=200,
@@ -922,6 +923,7 @@ def test():
         xtz_per_objkt = sp.utils.nat_to_mutez(3)
     ).run(
         sender = seller.address,
+        # valid = False
         valid = True
     )
 
