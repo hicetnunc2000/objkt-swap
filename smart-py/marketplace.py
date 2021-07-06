@@ -533,55 +533,58 @@ def test():
     )
 
     # one swap was added
+    scenario.verify(swap.data.counter == 500001)
     scenario.verify(swap.data.swaps.contains(500000) == True)
     scenario.verify(swap.data.swaps.contains(500001) == False)
-    scenario.verify(swap.data.counter == 500001)
     scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
 
-    # swap should now fail because there is only 1 objkt available
-    # TODO this currently passes and a swap gets added breaking all
-    # of the tests that have been commented out below
-    #
-    # tests below may be making incorrect assumptions, do not assume they
-    # are correct because i haven't been able to continue due to this
-    # first bug
-    #
-    # scenario += swap.swap(
-        # objkt_id = 153,
-        # objkt_amount = 1,
-        # xtz_per_objkt = sp.utils.nat_to_mutez(2)
-    # ).run(sender = seller.address, valid = False)
-    #
-    # # swap should not have been added because the swap should not
-    # exist anymore but it gets added
-    #
-    # scenario.verify(swap.data.swap_id == 1)
-    # scenario.verify(swap.data.swaps.contains(1) == False)
-    #
+    # swap should now fail because there is only 1 swap available
+    scenario += swap.swap(
+        creator=creator.address,
+        royalties=250,
+        objkt_id = 153,
+        objkt_amount = 1,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(sender = seller.address, valid = False)
+
+    # # swap should not have been added
+    scenario.verify(swap.data.counter == 500001)
+    scenario.verify(swap.data.swaps.contains(500001) == False)
+
     # # add a multiple edition from the same creator
     # # the address and the sender are both the creator
     # scenario += swap.mint_OBJKT(
-    #     address = creator.address,
-    #     amount = 3,
-    #     royalties = 250,
-    #     metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+        # address = creator.address,
+        # amount = 3,
+        # royalties = 250,
+        # metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
     # ).run(
-    #     sender = creator.address,
-    #     valid = True
+        # sender = creator.address,
+        # valid = True
     # )
     #
-    # scenario.verify(swap.data.objkt_id == 154)
-    # scenario.verify(swap.data.swap_id == 1)
-    # scenario.verify(swap.data.swaps.contains(1) == False)
-    #
-    # # claim multiple editions
+    # scenario.verify(swap.data.objkt_id == 500002)
+    # scenario.verify(swap.data.swaps.contains(500001) == True)
+
+    # try to list the new objkt
     # scenario += swap.swap(
+    #     creator=creator.address,
+    #     royalties=250,
     #     objkt_id = 154,
     #     objkt_amount = 2,
     #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
-    # ).run(sender = seller.address, valid = False)
+    # ).run(sender = creator.address, valid = False)
     #
-    # # there should be 2 more swaps
+    # # put multiple editions up as the creator
+    # scenario += swap.swap(
+    #     creator=creator.address,
+    #     royalties=250,
+    #     objkt_id = 154,
+    #     objkt_amount = 2,
+    #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    # ).run(sender = creator.address, valid = False)
+
+    # there should be 2 more swaps
     # scenario.verify(swap.data.objkt_id == 154)
     # scenario.verify(swap.data.swap_id == 3)
     # scenario.verify(swap.data.swaps.contains(3) == True)
