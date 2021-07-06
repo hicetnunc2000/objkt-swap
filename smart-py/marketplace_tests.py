@@ -2,7 +2,7 @@ import smartpy as sp
 import os
 
 Marketplace = sp.io.import_script_from_url(f"file://{os.getcwd()}/marketplace.py").Marketplace
-OBJKTSwap = sp.io.import_script_from_url(f"file://{os.getcwd()}/objkt_swap.py").OBJKTSwap
+OBJKTSwapClass = sp.io.import_script_from_url(f"file://{os.getcwd()}/objkt_swap.py")
 
 @sp.add_test("Class constructs with default values")
 def test():
@@ -283,16 +283,16 @@ def test():
     # This is where I got stuck, I need to be able to create
     # objkts to continue testing
 
-    objktContract = sp.contract(
-        sp.TRecord(
-            address=sp.TAddress,
-            amount=sp.TNat,
-            token_id=sp.TNat,
-            token_info=sp.TMap(sp.TString, sp.TBytes)
-        ),
-        objkt.address,
-        entry_point = "mint"
-    ).open_some()
+    # objktContract = sp.contract(
+        # sp.TRecord(
+            # address=sp.TAddress,
+            # amount=sp.TNat,
+            # token_id=sp.TNat,
+            # token_info=sp.TMap(sp.TString, sp.TBytes)
+        # ),
+        # objkt.address,
+        # entry_point = "mint"
+    # ).open_some()
     #
     # objktTransfer = sp.transfer(
     #     sp.record(
@@ -305,40 +305,63 @@ def test():
     #     objktContract
     # )
 
-    # add an 1/1 objkt to the contract
-    # the address and the sender are both the creator
-    # scenario += swap.mint_OBJKT(
-    #     address = creator.address,
-    #     amount = 1,
-    #     royalties = 200,
-    #     metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
-    # ).run(
-    #     sender = creator.address,
-    #     valid = True
-    # )
-    #
+    # create a 1/1 objkt contract
+    swapObjkt = OBJKTSwapClass.OBJKTSwap(
+        objkt.address,
+        sp.test_account("hdao").address,
+        sp.test_account("manager").address,
+        metadata,
+        sp.test_account("curator").address
+    )
+
+    scenario += swapObjkt
+
+    # # add a multiple edition from the same creator
+    # # the address and the sender are both the creator
+    scenario += swapObjkt.mint_OBJKT(
+        address = creator.address,
+        amount = 1,
+        royalties = 200,
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = creator.address,
+        valid = True
+    )
+
     # # the mint was successful but still no swap
-    # scenario.verify(swap.data.objkt_id == 153)
-    # scenario.verify(swap.data.swap_id == 0)
-    # scenario.verify(swap.data.swaps.contains(0) == False)
+    scenario.verify(swap.data.counter == 500000)
+    scenario.verify(swap.data.swaps.contains(500000) == False)
+
+    # objkt exists correctly
+    scenario.verify(swapObjkt.data.objkt_id == 153)
+    scenario.verify(swapObjkt.data.swap_id == 0)
+
+    scenario.verify(swapObjkt.data.royalties.contains(152) == True)
+    scenario.verify(swapObjkt.data.royalties.get(152).royalties == 200)
+    scenario.verify(swapObjkt.data.royalties.get(152).issuer == creator.address)
+    scenario.verify(swapObjkt.data.swaps.contains(0) == False)
 
     # try swap more objkts than exist must fail
     # TODO this should fail and currently does not
-    # scenario += swap.swap(
-    #     objkt_id = 153,
-    #     objkt_amount = 2,
-    #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
-    # ).run(
-    #     sender = seller.address,
-    #     valid = False
-    # )
+    scenario += swap.swap(
+        creator=creator.address,
+        issuer=creator.address,
+        objkt_amount = 2,
+        objkt_id = 152,
+        royalties = 200,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(
+        sender = seller.address,
+        valid = False
+    )
 
     # swap id should not have incremented
-    # scenario.verify(swap.data.swaps.contains(0) == False)
+    scenario.verify(swap.data.swaps.contains(500000) == False)
 
     # swap with new objkt id must pass
     scenario += swap.swap(
         creator=creator.address,
+        issuer=creator.address,
         royalties=250,
         objkt_id = 153,
         objkt_amount = 1,
@@ -357,6 +380,7 @@ def test():
     # swap should now fail because there is only 1 swap available
     scenario += swap.swap(
         creator=creator.address,
+        issuer=creator.address,
         royalties=250,
         objkt_id = 153,
         objkt_amount = 1,
@@ -367,17 +391,28 @@ def test():
     scenario.verify(swap.data.counter == 500001)
     scenario.verify(swap.data.swaps.contains(500001) == False)
 
+    # create an objkt contract
+    swapObjkt = OBJKTSwapClass.OBJKTSwap(
+        objkt.address,
+        sp.test_account("hdao").address,
+        sp.test_account("manager").address,
+        metadata,
+        sp.test_account("curator").address
+    )
+
+    scenario += swapObjkt
+
     # # add a multiple edition from the same creator
     # # the address and the sender are both the creator
-    # scenario += swap.mint_OBJKT(
-        # address = creator.address,
-        # amount = 3,
-        # royalties = 250,
-        # metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
-    # ).run(
-        # sender = creator.address,
-        # valid = True
-    # )
+    scenario += swapObjkt.mint_OBJKT(
+        address = creator.address,
+        amount = 3,
+        royalties = 250,
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = creator.address,
+        valid = True
+    )
     #
     # scenario.verify(swap.data.objkt_id == 500002)
     # scenario.verify(swap.data.swaps.contains(500001) == True)
