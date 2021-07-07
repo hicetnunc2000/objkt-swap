@@ -1,3 +1,5 @@
+import smartpy as sp
+
 ## hDAO batch FA2 version
 
 ##

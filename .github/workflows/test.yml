@@ -1,0 +1,32 @@
+name: Unit Tests
+on:
+  pull_request:
+    paths:
+    - '.github/**'
+    - '**.py'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+          architecture: 'x64'
+      - run: printf '%s\n' 'y' 'y' | sh <(curl -s https://smartpy.io/cli/install.sh)
+      - run: ./test.sh
+  # disabled until we figure out how to compile :)
+  # compile:
+  #   needs: [test]
+  #   if: always()
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v2
+  #       with:
+  #         python-version: '3.x'
+  #         architecture: 'x64'
+  #     - run: printf '%s\n' 'y' 'y' | sh <(curl -s https://smartpy.io/cli/install.sh)
+  #     - run: ~/smartpy-cli/SmartPy.sh compile smart-py/objkt_swap.py /tmp/objkt_swap
+  #     - run: ~/smartpy-cli/SmartPy.sh compile smart-py/marketplace.py /tmp/marketplace
