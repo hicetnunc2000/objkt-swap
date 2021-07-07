@@ -1,4 +1,3 @@
-        
 class Marketplace(sp.Contract):
     def __init__(self, objkt, metadata, manager, fee):
         self.init(
@@ -12,7 +11,7 @@ class Marketplace(sp.Contract):
             
     @sp.entry_point
     def swap(self, params):
-        sp.verify((params.objkt_amount > 0) & ((params.royalties >= 0) | (params.royalties <= 250)))
+        sp.verify((params.objkt_amount > 0) & ((params.royalties >= 0) & (params.royalties <= 250)))
         self.fa2_transfer(self.data.objkt, sp.sender, sp.self_address, params.objkt_id, params.objkt_amount)
         self.data.swaps[self.data.counter] = sp.record(issuer=sp.sender, objkt_amount=params.objkt_amount, objkt_id=params.objkt_id, xtz_per_objkt=params.xtz_per_objkt, royalties=params.royalties, creator=params.creator)
         self.data.counter += 1
