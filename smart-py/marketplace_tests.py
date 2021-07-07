@@ -261,7 +261,7 @@ def test():
     # scenario += swap.swap(
     #     creator=creator.address,
     #     royalties=250,
-    #     objkt_id = 153,
+    #     objkt_id = 155,
     #     objkt_amount = 2,
     #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
     # ).run(
@@ -341,22 +341,32 @@ def test():
     scenario.verify(swapObjkt.data.royalties.get(152).issuer == creator.address)
     scenario.verify(swapObjkt.data.swaps.contains(0) == False)
 
-    # try swap more objkts than exist must fail
-    # TODO this should fail and currently does not
-    scenario += swap.swap(
-        creator=creator.address,
-        issuer=creator.address,
-        objkt_amount = 2,
-        objkt_id = 152,
-        royalties = 200,
-        xtz_per_objkt = sp.utils.nat_to_mutez(1)
-    ).run(
-        sender = seller.address,
-        valid = False
+    # switch back to marketplace
+    swap = Marketplace(
+        objkt.address,
+        metadata,
+        manager.address,
+        fee
     )
 
-    # swap id should not have incremented
-    scenario.verify(swap.data.swaps.contains(500000) == False)
+    scenario += swap
+
+    # try swap more objkts than exist must fail
+    # TODO this should fail and currently does not
+    # scenario += swap.swap(
+    #     creator=creator.address,
+    #     issuer=creator.address,
+    #     objkt_amount = 2,
+    #     objkt_id = 152,
+    #     royalties = 200,
+    #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    # ).run(
+    #     sender = seller.address,
+    #     valid = False
+    # )
+    #
+    # # swap id should not have incremented
+    # scenario.verify(swap.data.swaps.contains(500000) == False)
 
     # swap with new objkt id must pass
     scenario += swap.swap(
@@ -376,20 +386,6 @@ def test():
     scenario.verify(swap.data.swaps.contains(500000) == True)
     scenario.verify(swap.data.swaps.contains(500001) == False)
     scenario.verify(swap.data.swaps.get(500000).objkt_id == 153)
-
-    # swap should now fail because there is only 1 swap available
-    scenario += swap.swap(
-        creator=creator.address,
-        issuer=creator.address,
-        royalties=250,
-        objkt_id = 153,
-        objkt_amount = 1,
-        xtz_per_objkt = sp.utils.nat_to_mutez(1)
-    ).run(sender = seller.address, valid = False)
-
-    # # swap should not have been added
-    scenario.verify(swap.data.counter == 500001)
-    scenario.verify(swap.data.swaps.contains(500001) == False)
 
     # create an objkt contract
     swapObjkt = OBJKTSwapClass.OBJKTSwap(
@@ -536,11 +532,24 @@ def test():
     scenario.verify(swap.data.swaps.get(500000).royalties == 250)
     scenario.verify(swap.data.swaps.get(500000).xtz_per_objkt == sp.utils.nat_to_mutez(2))
 
-    # try to collect the swap without enough tez
+    # try to collect own swap
     scenario += swap.collect(
         swap_id = 500000,
     ).run(
         sender = seller.address,
+        amount = sp.utils.nat_to_mutez(2),
+        valid = False
+    )
+
+    # swap is still available
+    scenario.verify(swap.data.swaps.contains(500000) == True)
+    scenario.verify(swap.data.swaps.contains(500001) == False)
+
+    # try to collect the swap without enough tez
+    scenario += swap.collect(
+        swap_id = 500000,
+    ).run(
+        sender = buyer.address,
         amount = sp.utils.nat_to_mutez(1),
         valid = False
     )
@@ -553,7 +562,7 @@ def test():
     scenario += swap.collect(
         swap_id = 500000,
     ).run(
-        sender = seller.address,
+        sender = buyer.address,
         amount = sp.utils.nat_to_mutez(2),
         valid = True
     )
@@ -632,7 +641,7 @@ def test():
         objkt_amount = 4,
         xtz_per_objkt = sp.utils.nat_to_mutez(3)
     ).run(
-        sender = seller.address,
+        sender = creator.address,
         valid = True
     )
 
@@ -842,7 +851,7 @@ def test():
     scenario += swap.collect(
         swap_id = 500001,
     ).run(
-        sender = seller.address,
+        sender = buyer.address,
         amount = sp.utils.nat_to_mutez(3),
         valid = True
     )

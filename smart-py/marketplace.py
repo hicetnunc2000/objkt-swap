@@ -25,6 +25,8 @@ class Marketplace(sp.Contract):
     def swap(self, params):
         sp.verify(
             (params.objkt_amount > 0) &
+            (params.objkt_id < self.data.counter) &
+            (params.objkt_id >= 152) &
             (
                 (params.royalties >= 0) & (params.royalties <= 250)
             )
@@ -69,6 +71,8 @@ class Marketplace(sp.Contract):
             # and verify there are objkts available for swap
             ) & (
                 self.data.swaps[params.swap_id].objkt_amount > 0
+            ) & (
+                sp.sender != self.data.swaps[params.swap_id].issuer
             )
         )
 
