@@ -15,8 +15,8 @@ jobs:
           python-version: '3.x'
           architecture: 'x64'
       - run: printf '%s\n' 'y' 'y' | sh <(curl -s https://smartpy.io/cli/install.sh)
-      - run: ~/smartpy-cli/SmartPy.sh test smart-py/objkt_swap.py /tmp/objkt_swap_test
-      - run: ~/smartpy-cli/SmartPy.sh test smart-py/marketplace.py /tmp/marketplace_test
+      - run: ~/smartpy-cli/SmartPy.sh test smart-py/objkt_swap_tests.py /tmp/objkt_swap_test
+      - run: ~/smartpy-cli/SmartPy.sh test smart-py/marketplace_tests.py /tmp/marketplace_test
   compile:
     needs: [test]
     if: always()

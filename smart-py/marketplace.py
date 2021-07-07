@@ -71,6 +71,7 @@ class Marketplace(sp.Contract):
             # and verify there are objkts available for swap
             ) & (
                 self.data.swaps[params.swap_id].objkt_amount > 0
+            # and not collecting own swap
             ) & (
                 sp.sender != self.data.swaps[params.swap_id].issuer
             )
