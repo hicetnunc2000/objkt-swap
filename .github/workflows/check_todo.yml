@@ -1,15 +1,17 @@
-name: Check TODO
-on:
-  pull_request:
-    types: [opened, synchronize, reopened, edited]
-
-jobs:
-  todo:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        ref: ${{ github.head_ref }}
-    - uses: adriangodong/actions-todo-bot@1.0.0
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+# Disabled until todos are all done :)
+#
+# name: Check TODO
+# on:
+#   pull_request:
+#     types: [opened, synchronize, reopened, edited]
+#
+# jobs:
+#   todo:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v2
+#       with:
+#         ref: ${{ github.head_ref }}
+#     - uses: adriangodong/actions-todo-bot@1.0.0
+#       with:
+#         repo-token: ${{ secrets.GITHUB_TOKEN }}
