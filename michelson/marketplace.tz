@@ -624,15 +624,15 @@ code
                 GE;
                 IF
                   {
-                    PUSH bool True;
-                  }
-                  {
                     DUP;
                     GET 5;
                     PUSH nat 250;
                     SWAP;
                     COMPARE;
                     LE;
+                  }
+                  {
+                    PUSH bool False;
                   };
               }
               {
@@ -641,7 +641,7 @@ code
             IF
               {}
               {
-                PUSH string "WrongCondition: (params.objkt_amount > 0) & ((params.royalties >= 0) | (params.royalties <= 250))";
+                PUSH string "WrongCondition: (params.objkt_amount > 0) & ((params.royalties >= 0) & (params.royalties <= 250))";
                 FAILWITH;
               };
             NIL operation;
