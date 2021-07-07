@@ -15,7 +15,7 @@ jobs:
           python-version: '3.x'
           architecture: 'x64'
       - run: printf '%s\n' 'y' 'y' | sh <(curl -s https://smartpy.io/cli/install.sh)
-      - run: test.sh
+      - run: ./test.sh
   compile:
     needs: [test]
     if: always()
