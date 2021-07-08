@@ -223,7 +223,7 @@ class OBJKTSwap(sp.Contract):
         sp.verify(
             # at least 1 objkt
             (params.amount > 0) &
-            # no more than 10l
+            # no more than 10k
             (params.amount <= 10000) &
             (
                 (params.royalties >= 0) &
