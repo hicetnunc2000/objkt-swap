@@ -23,11 +23,6 @@ class Marketplace(sp.Contract):
 
     @sp.entry_point
     def swap(self, params):
-        # previous for easy comparison
-        # sp.verify((params.objkt_amount > 0) & ((params.royalties >= 0) & (params.royalties <= 250)))
-
-        # TODO
-        # must we check not swapping more that avail or chain does that?
         sp.verify(params.objkt_amount > 0)
         sp.verify((params.royalties >= 0) & (params.royalties <= 250))
 
