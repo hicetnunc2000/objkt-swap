@@ -1,5 +1,6 @@
 import smartpy as sp
 
+# this is a proposed proxy contract to start a conversation
 class Proxy(sp.Contract):
     def __init__(self, addr, owner):
         self.init(

@@ -26,22 +26,14 @@ class Marketplace(sp.Contract):
         # previous for easy comparison
         # sp.verify((params.objkt_amount > 0) & ((params.royalties >= 0) & (params.royalties <= 250)))
 
-        sp.verify(
-            (params.objkt_amount > 0) &
-            (params.objkt_id < self.data.counter) &
-            (params.objkt_id >= 152) &
-            (
-                (params.royalties >= 0) & (params.royalties <= 250)
-            )
-        )
+        # TODO
+        # must we check not swapping more that avail or chain does that?
+        sp.verify(params.objkt_amount > 0)
+        sp.verify((params.royalties >= 0) & (params.royalties <= 250))
 
         # TODO
         # i want to validate the royalties here to make sure they match
         # what is set on the objkt when it is minted
-
-        # previous for easy comparison
-        # self.fa2_transfer(self.data.objkt, sp.sender, sp.self_address, params.objkt_id, params.objkt_amount)
-
         self.fa2_transfer(
             self.data.objkt,
             sp.sender,
@@ -49,9 +41,6 @@ class Marketplace(sp.Contract):
             params.objkt_id,
             params.objkt_amount
         )
-
-        # previous for easy comparison
-        # self.data.swaps[self.data.counter] = sp.record(issuer=sp.sender, objkt_amount=params.objkt_amount, objkt_id=params.objkt_id, xtz_per_objkt=params.xtz_per_objkt, royalties=params.royalties, creator=params.creator)
 
         self.data.swaps[self.data.counter] = sp.record(
             issuer=sp.sender,
@@ -115,7 +104,7 @@ class Marketplace(sp.Contract):
                 )
             )
 
-            # send value to issuer
+            # send amount minus fees to issuer
             sp.send(
                 self.data.swaps[params.swap_id].issuer,
                 sp.amount - sp.utils.nat_to_mutez(self.fee)
