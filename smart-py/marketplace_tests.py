@@ -261,12 +261,12 @@ def test():
     # scenario += swap.swap(
     #     creator=creator.address,
     #     royalties=250,
-    #     objkt_id = 155,
-    #     objkt_amount = 2,
-    #     xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    #     objkt_id=155,
+    #     objkt_amount=2,
+    #     xtz_per_objkt=sp.utils.nat_to_mutez(1)
     # ).run(
-    #     sender = seller.address,
-    #     valid = False
+    #     sender=seller.address,
+    #     valid=False
     # )
 
     # nothing changed because the swap failed as no swaps were created
