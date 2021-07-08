@@ -675,6 +675,16 @@ def test():
     # scenario.verify(swap.data.swaps.contains(0) == False)
     # scenario.verify(swap.data.swaps.contains(1) == False)
 
+    # try swap 0 and fail
+    scenario += swap.swap(
+        objkt_id = 152,
+        objkt_amount = 0,
+        xtz_per_objkt = sp.utils.nat_to_mutez(1)
+    ).run(
+        sender = buyer.address,
+        valid = False
+    )
+
     # new owner makes a swap
     scenario += swap.swap(
         objkt_id = 152,
