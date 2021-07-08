@@ -127,14 +127,26 @@ def test():
 
     scenario += swap
 
+    # initial state
+    scenario.verify(swap.data.locked == False)
+    scenario.verify(swap.data.genesis == sp.timestamp(0))
+
     # illegal attempts
     scenario += swap.genesis().run(sender = seller, valid = False)
     scenario += swap.genesis().run(sender = hdao, valid = False)
     scenario += swap.genesis().run(sender = curator, valid = False)
     scenario += swap.genesis().run(sender = objkt, valid = False)
 
+    # no change
+    scenario.verify(swap.data.locked == False)
+    scenario.verify(swap.data.genesis == sp.timestamp(0))
+
     # valid attempt
     scenario += swap.genesis().run(sender = manager, valid = True)
+
+    # updated and locked
+    scenario.verify(swap.data.locked == True)
+    scenario.verify(swap.data.genesis == sp.timestamp(0).add_days(45))
 
 @sp.add_test("Test update manager entrypoint")
 def test():
