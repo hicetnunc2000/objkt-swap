@@ -32,6 +32,7 @@ class Multisig(sp.Contract):
         total = sp.local('total', 0)
         sp.for e in params.values():
             total.value += e
+        #6 decimals?
         sp.verify(total.value == 10000)
         
         self.data.payout = params   
