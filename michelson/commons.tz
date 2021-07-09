@@ -1,0 +1,160 @@
+parameter (or (or (unit %default) (pair %hicetnunc_manager (address %addr) (address %manager))) (or (map %payout_config address nat) (address %self_manager)));
+storage   (pair (address %manager) (map %payout address nat));
+code
+  {
+    CAST (pair (or (or unit (pair address address)) (or (map address nat) address)) (pair address (map address nat)));
+    UNPAIR;
+    IF_LEFT
+      {
+        IF_LEFT
+          {
+            NIL operation;
+            DUP 3;
+            CDR;
+            ITER
+              {
+                CAR;
+                DUP;
+                DUG 2;
+                CONTRACT unit;
+                IF_NONE
+                  {
+                    PUSH int 178;
+                    FAILWITH;
+                  }
+                  {};
+                PUSH mutez 1;
+                DUP 6;
+                CDR;
+                DIG 4;
+                GET;
+                IF_NONE
+                  {
+                    PUSH int 178;
+                    FAILWITH;
+                  }
+                  {};
+                PUSH nat 10000;
+                PUSH mutez 1;
+                PUSH nat 1;
+                MUL;
+                BALANCE;
+                EDIV;
+                IF_NONE
+                  {
+                    PUSH int 178;
+                    FAILWITH;
+                  }
+                  {};
+                CAR;
+                EDIV;
+                IF_NONE
+                  {
+                    PUSH int 178;
+                    FAILWITH;
+                  }
+                  {
+                    CAR;
+                  };
+                MUL;
+                MUL;
+                UNIT;
+                TRANSFER_TOKENS;
+                CONS;
+              };
+            SWAP;
+            DROP;
+          }
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            CAR;
+            SENDER;
+            COMPARE;
+            EQ;
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: sp.sender == self.data.manager";
+                FAILWITH;
+              };
+            DUP;
+            CAR;
+            CONTRACT %update_manager address;
+            IF_NONE
+              {
+                PUSH int 183;
+                FAILWITH;
+              }
+              {};
+            NIL operation;
+            SWAP;
+            PUSH mutez 0;
+            DIG 3;
+            CDR;
+            TRANSFER_TOKENS;
+            CONS;
+          };
+      }
+      {
+        IF_LEFT
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            CAR;
+            SENDER;
+            COMPARE;
+            EQ;
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: sp.sender == self.data.manager";
+                FAILWITH;
+              };
+            DUP;
+            PUSH nat 0;
+            SWAP;
+            ITER
+              {
+                CDR;
+                ADD;
+              };
+            PUSH nat 10000;
+            COMPARE;
+            EQ;
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: total.value == 10000";
+                FAILWITH;
+              };
+            UPDATE 2;
+          }
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            CAR;
+            SENDER;
+            COMPARE;
+            EQ;
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: sp.sender == self.data.manager";
+                FAILWITH;
+              };
+            UPDATE 1;
+          };
+        NIL operation;
+      };
+    NIL operation;
+    SWAP;
+    ITER
+      {
+        CONS;
+      };
+    PAIR;
+  };
