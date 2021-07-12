@@ -21,7 +21,7 @@ OBJKTs: KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton
 SUBJKTs: KT1My1wDZHDGweCrJnQJi3wcFaS67iksirvj
 Hic et nunc Unregistry: KT1WN8NrfvH18g7uiBY62ThcNpq3ggqfubhE
 Hic et nunc Markeplace: KT1HbQepzV1nVGg8QVznG7z4RcHseD5kwqBn
-hDAO Marketplace: KT1TBspofkAVQt6yVcoB1Yjd87FMxuExPodF
+hDAO Marketplace: KT1VEp2pFf1oGXbaFRhKjstaacwH6suWnZBy
 Report: 
 Galleries:
 ```
