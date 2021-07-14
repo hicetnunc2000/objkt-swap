@@ -18,7 +18,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 137;
+                PUSH int 136;
                 FAILWITH;
               }
               {};
@@ -39,7 +39,7 @@ code
             CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
             IF_NONE
               {
-                PUSH int 160;
+                PUSH int 161;
                 FAILWITH;
               }
               {};
@@ -52,7 +52,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 138;
+                PUSH int 137;
                 FAILWITH;
               }
               {};
@@ -63,7 +63,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 138;
+                PUSH int 137;
                 FAILWITH;
               }
               {};
@@ -74,7 +74,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 138;
+                PUSH int 137;
                 FAILWITH;
               }
               {};
@@ -104,7 +104,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 143;
+                PUSH int 142;
                 FAILWITH;
               }
               {};
@@ -123,7 +123,7 @@ code
             CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
             IF_NONE
               {
-                PUSH int 160;
+                PUSH int 161;
                 FAILWITH;
               }
               {};
@@ -137,7 +137,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 144;
+                PUSH int 143;
                 FAILWITH;
               }
               {};
@@ -156,7 +156,7 @@ code
             CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
             IF_NONE
               {
-                PUSH int 160;
+                PUSH int 161;
                 FAILWITH;
               }
               {};
@@ -175,7 +175,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 148;
+                PUSH int 147;
                 FAILWITH;
               }
               {};
@@ -194,7 +194,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {};
@@ -205,7 +205,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {};
@@ -216,7 +216,7 @@ code
             EDIV;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {
@@ -228,7 +228,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 148;
+                PUSH int 147;
                 FAILWITH;
               }
               {};
@@ -237,7 +237,7 @@ code
             EDIV;
             IF_NONE
               {
-                PUSH int 148;
+                PUSH int 147;
                 FAILWITH;
               }
               {
@@ -250,7 +250,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 151;
+                PUSH int 150;
                 FAILWITH;
               }
               {};
@@ -269,7 +269,7 @@ code
             CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
             IF_NONE
               {
-                PUSH int 160;
+                PUSH int 161;
                 FAILWITH;
               }
               {};
@@ -288,7 +288,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 148;
+                PUSH int 147;
                 FAILWITH;
               }
               {};
@@ -307,7 +307,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {};
@@ -318,7 +318,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {};
@@ -329,7 +329,7 @@ code
             EDIV;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {
@@ -341,7 +341,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 148;
+                PUSH int 147;
                 FAILWITH;
               }
               {};
@@ -350,7 +350,7 @@ code
             EDIV;
             IF_NONE
               {
-                PUSH int 148;
+                PUSH int 147;
                 FAILWITH;
               }
               {
@@ -369,7 +369,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {};
@@ -380,7 +380,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {};
@@ -391,7 +391,7 @@ code
             EDIV;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {
@@ -416,7 +416,7 @@ code
             CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
             IF_NONE
               {
-                PUSH int 160;
+                PUSH int 161;
                 FAILWITH;
               }
               {};
@@ -436,7 +436,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {};
@@ -447,7 +447,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {};
@@ -458,7 +458,7 @@ code
             EDIV;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 146;
                 FAILWITH;
               }
               {
@@ -470,7 +470,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 157;
+                PUSH int 156;
                 FAILWITH;
               }
               {};
@@ -481,11 +481,11 @@ code
             PUSH nat 0;
             DUP 9;
             GET 6;
-            DIG 8;
+            DUP 9;
             GET;
             IF_NONE
               {
-                PUSH int 157;
+                PUSH int 156;
                 FAILWITH;
               }
               {};
@@ -498,11 +498,75 @@ code
             CONS;
             TRANSFER_TOKENS;
             CONS;
+            DUP 3;
+            DUP;
+            GET 6;
+            DUP;
+            DUP 5;
+            DUP;
+            DUG 2;
+            GET;
+            IF_NONE
+              {
+                PUSH int 158;
+                FAILWITH;
+              }
+              {};
+            PUSH nat 1;
+            DIG 7;
+            GET 6;
+            DIG 7;
+            GET;
+            IF_NONE
+              {
+                PUSH int 158;
+                FAILWITH;
+              }
+              {};
+            GET 3;
+            SUB;
+            ISNAT;
+            IF_NONE
+              {
+                PUSH int 158;
+                FAILWITH;
+              }
+              {};
+            UPDATE 3;
+            SOME;
+            SWAP;
+            UPDATE;
+            UPDATE 6;
+            SWAP;
           };
       }
       {
         IF_LEFT
           {
+            DUP;
+            GET 6;
+            PUSH nat 0;
+            SWAP;
+            COMPARE;
+            GE;
+            IF
+              {
+                DUP;
+                GET 6;
+                PUSH nat 250;
+                SWAP;
+                COMPARE;
+                LE;
+              }
+              {
+                PUSH bool False;
+              };
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: (params.royalties >= 0) & (params.royalties <= 250)";
+                FAILWITH;
+              };
             SWAP;
             DUP;
             DUG 2;
@@ -542,7 +606,7 @@ code
             CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
             IF_NONE
               {
-                PUSH int 160;
+                PUSH int 161;
                 FAILWITH;
               }
               {};
