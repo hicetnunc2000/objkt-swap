@@ -22,6 +22,7 @@ class hDAO_Marketplace(sp.Contract):
         
     @sp.entry_point
     def swap(self, params):
+        sp.verify((params.royalties >= 0) & (params.royalties <= 250))
         self.data.swaps[self.data.counter] = sp.record(hdao_per_objkt=params.hdao_per_objkt, objkt_amount=params.objkt_amount, objkt_id=params.objkt_id, issuer=sp.sender, creator=params.creator, royalties=params.royalties)
         self.tk_transfer(self.data.objkts, sp.sender, sp.to_address(sp.self), params.objkt_id, params.objkt_amount)
         self.data.counter += 1
@@ -50,6 +51,8 @@ class hDAO_Marketplace(sp.Contract):
         # send value to issuer
         self.tk_transfer(self.data.hdao, sp.sender, self.data.swaps[params.swap_id].issuer, 0, abs(self.data.swaps[params.swap_id].hdao_per_objkt - self.fee))
                 
+        self.data.swaps[params.swap_id].objkt_amount = sp.as_nat(self.data.swaps[params.swap_id].objkt_amount - 1)
+
     def tk_transfer(self, kt, issuer, destination, tk_id, tk_amount):
         c = sp.contract(sp.TList(sp.TRecord(from_=sp.TAddress, txs=sp.TList(sp.TRecord(amount=sp.TNat, to_=sp.TAddress, token_id=sp.TNat).layout(("to_", ("token_id", "amount")))))), kt, entry_point='transfer').open_some()
         sp.transfer(sp.list([sp.record(from_=issuer, txs=sp.list([sp.record(amount=tk_amount, to_=destination, token_id=tk_id)]))]), sp.mutez(0), c)
