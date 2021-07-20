@@ -1,11 +1,10 @@
-class hDAO_Marketplace(sp.Contract):
-    def __init__(self, manager, metadata, hdao, objkts):
+class OBJKTSWAPV21(sp.Contract):
+    def __init__(self, manager, metadata, objkts):
         self.init(
             manager = manager,
             metadata = metadata,
-            hdao = hdao,
             objkts = objkts,
-            swaps = sp.big_map(tkey=sp.TNat, tvalue=sp.TRecord(hdao_per_objkt=sp.TNat, objkt_amount=sp.TNat, objkt_id=sp.TNat, issuer=sp.TAddress, creator=sp.TAddress, royalties=sp.TNat)),
+            swaps = sp.big_map(tkey=sp.TNat, tvalue=sp.TRecord(token_per_objkt=sp.TNat, objkt_amount=sp.TNat, objkt_id=sp.TNat, issuer=sp.TAddress, creator=sp.TAddress, royalties=sp.TNat, contract=sp.TAddress, token_id=sp.TNat)),
             counter = 0,
             fee = 25
             )
@@ -23,7 +22,7 @@ class hDAO_Marketplace(sp.Contract):
     @sp.entry_point
     def swap(self, params):
         sp.verify((params.royalties >= 0) & (params.royalties <= 250))
-        self.data.swaps[self.data.counter] = sp.record(hdao_per_objkt=params.hdao_per_objkt, objkt_amount=params.objkt_amount, objkt_id=params.objkt_id, issuer=sp.sender, creator=params.creator, royalties=params.royalties)
+        self.data.swaps[self.data.counter] = sp.record(token_per_objkt=params.token_per_objkt, objkt_amount=params.objkt_amount, objkt_id=params.objkt_id, issuer=sp.sender, creator=params.creator, royalties=params.royalties, contract=params.contract, token_id=params.token_id)
         self.tk_transfer(self.data.objkts, sp.sender, sp.to_address(sp.self), params.objkt_id, params.objkt_amount)
         self.data.counter += 1
 
@@ -39,17 +38,17 @@ class hDAO_Marketplace(sp.Contract):
         self.tk_transfer(self.data.objkts, sp.to_address(sp.self), sp.sender, self.data.swaps[params.swap_id].objkt_id, 1)
         
         # royalties/fees
-        self.fee = (self.data.swaps[params.swap_id].hdao_per_objkt * self.data.swaps[params.swap_id].royalties + self.data.fee) / 1000
+        self.fee = (self.data.swaps[params.swap_id].token_per_objkt * self.data.swaps[params.swap_id].royalties + self.data.fee) / 1000
         self.royalties = self.data.swaps[params.swap_id].royalties * self.fee / (self.data.swaps[params.swap_id].royalties + self.data.fee)
      
         # send royalties to NFT creator
-        self.tk_transfer(self.data.hdao, sp.sender, self.data.swaps[params.swap_id].creator, 0, self.royalties)
+        self.tk_transfer(self.data.swaps[params.swap_id].contract, sp.sender, self.data.swaps[params.swap_id].creator, self.data.swaps[params.swap_id].token_id, self.royalties)
                 
         # send management fees
-        self.tk_transfer(self.data.hdao, sp.sender, self.data.manager, 0, abs(self.fee - self.royalties))
+        self.tk_transfer(self.data.swaps[params.swap_id].contract, sp.sender, self.data.manager, self.data.swaps[params.swap_id].token_id, abs(self.fee - self.royalties))
                 
         # send value to issuer
-        self.tk_transfer(self.data.hdao, sp.sender, self.data.swaps[params.swap_id].issuer, 0, abs(self.data.swaps[params.swap_id].hdao_per_objkt - self.fee))
+        self.tk_transfer(self.data.swaps[params.swap_id].contract, sp.sender, self.data.swaps[params.swap_id].issuer, self.data.swaps[params.swap_id].token_id, abs(self.data.swaps[params.swap_id].token_per_objkt - self.fee))
                 
         self.data.swaps[params.swap_id].objkt_amount = sp.as_nat(self.data.swaps[params.swap_id].objkt_amount - 1)
 
