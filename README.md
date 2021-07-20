@@ -25,14 +25,6 @@ hDAO Marketplace (OBJKT Swap v2.1): KT1KH1MYXaYMuRquo1dBqKHPBgK7NHUG8qvx
 Report: 
 Galleries:
 ```
-edo2net
-```
-hDAO: KT1BHuA31S4PPTdQZzzbx2AU7wapvzSZK6wo
-OBJKTs: KT1DhyxZ7oEQXyNaJ9uN33RahiKEf3fS5X7i
-Hic et nunc Minter: KT1LtF7FVcoSN1bgz1CLTptVR7SpvJVNpKJZ
-Marketplace: KT1F2CcTMrJhHqMRqAriA1H2FFYzx91jeko4
-
-```
 
 `
 MIT license
