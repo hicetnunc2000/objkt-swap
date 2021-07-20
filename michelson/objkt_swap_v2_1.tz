@@ -1,8 +1,8 @@
-parameter (or (or (nat %cancel_swap) (nat %collect)) (or (pair %swap (pair (address %creator) (nat %hdao_per_objkt)) (pair (nat %objkt_amount) (pair (nat %objkt_id) (nat %royalties)))) (or (nat %update_fee) (address %update_manager))));
-storage   (pair (pair (nat %counter) (pair (nat %fee) (address %hdao))) (pair (pair (address %manager) (big_map %metadata string bytes)) (pair (address %objkts) (big_map %swaps nat (pair (pair (address %creator) (pair (nat %hdao_per_objkt) (address %issuer))) (pair (nat %objkt_amount) (pair (nat %objkt_id) (nat %royalties))))))));
+parameter (or (or (nat %cancel_swap) (nat %collect)) (or (pair %swap (pair (address %contract) (pair (address %creator) (nat %objkt_amount))) (pair (pair (nat %objkt_id) (nat %royalties)) (pair (nat %token_id) (nat %token_per_objkt)))) (or (nat %update_fee) (address %update_manager))));
+storage   (pair (pair (nat %counter) (pair (nat %fee) (address %manager))) (pair (big_map %metadata string bytes) (pair (address %objkts) (big_map %swaps nat (pair (pair (pair (address %contract) (address %creator)) (pair (address %issuer) (nat %objkt_amount))) (pair (pair (nat %objkt_id) (nat %royalties)) (pair (nat %token_id) (nat %token_per_objkt))))))));
 code
   {
-    CAST (pair (or (or nat nat) (or (pair (pair address nat) (pair nat (pair nat nat))) (or nat address))) (pair (pair nat (pair nat address)) (pair (pair address (big_map string bytes)) (pair address (big_map nat (pair (pair address (pair nat address)) (pair nat (pair nat nat))))))));
+    CAST (pair (or (or nat nat) (or (pair (pair address (pair address nat)) (pair (pair nat nat) (pair nat nat))) (or nat address))) (pair (pair nat (pair nat address)) (pair (big_map string bytes) (pair address (big_map nat (pair (pair (pair address address) (pair address nat)) (pair (pair nat nat) (pair nat nat))))))));
     UNPAIR;
     IF_LEFT
       {
@@ -18,12 +18,12 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 136;
+                PUSH int 144;
                 FAILWITH;
               }
               {};
             CAR;
-            GET 4;
+            GET 3;
             SENDER;
             COMPARE;
             EQ;
@@ -39,7 +39,7 @@ code
             CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
             IF_NONE
               {
-                PUSH int 161;
+                PUSH int 169;
                 FAILWITH;
               }
               {};
@@ -52,34 +52,36 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 137;
-                FAILWITH;
-              }
-              {};
-            GET 3;
-            DUP 8;
-            GET 6;
-            DUP 8;
-            GET;
-            IF_NONE
-              {
-                PUSH int 137;
-                FAILWITH;
-              }
-              {};
-            GET 5;
-            DUP 9;
-            GET 6;
-            DUP 9;
-            GET;
-            IF_NONE
-              {
-                PUSH int 137;
+                PUSH int 145;
                 FAILWITH;
               }
               {};
             CAR;
             GET 4;
+            DUP 8;
+            GET 6;
+            DUP 8;
+            GET;
+            IF_NONE
+              {
+                PUSH int 145;
+                FAILWITH;
+              }
+              {};
+            GET 3;
+            CAR;
+            DUP 9;
+            GET 6;
+            DUP 9;
+            GET;
+            IF_NONE
+              {
+                PUSH int 145;
+                FAILWITH;
+              }
+              {};
+            CAR;
+            GET 3;
             PAIR 3;
             CONS;
             SELF_ADDRESS;
@@ -90,7 +92,7 @@ code
             DIG 2;
             DUP;
             GET 6;
-            NONE (pair (pair address (pair nat address)) (pair nat (pair nat nat)));
+            NONE (pair (pair (pair address address) (pair address nat)) (pair (pair nat nat) (pair nat nat)));
             DIG 4;
             UPDATE;
             UPDATE 6;
@@ -104,11 +106,12 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 142;
+                PUSH int 150;
                 FAILWITH;
               }
               {};
-            GET 3;
+            CAR;
+            GET 4;
             COMPARE;
             GT;
             IF
@@ -123,7 +126,7 @@ code
             CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
             IF_NONE
               {
-                PUSH int 161;
+                PUSH int 169;
                 FAILWITH;
               }
               {};
@@ -137,11 +140,12 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 143;
+                PUSH int 151;
                 FAILWITH;
               }
               {};
-            GET 5;
+            GET 3;
+            CAR;
             SENDER;
             PAIR 3;
             CONS;
@@ -151,12 +155,22 @@ code
             TRANSFER_TOKENS;
             CONS;
             DUP 3;
+            GET 6;
+            DUP 3;
+            GET;
+            IF_NONE
+              {
+                PUSH int 158;
+                FAILWITH;
+              }
+              {};
             CAR;
-            GET 4;
+            CAR;
+            CAR;
             CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
             IF_NONE
               {
-                PUSH int 161;
+                PUSH int 169;
                 FAILWITH;
               }
               {};
@@ -175,11 +189,12 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 155;
                 FAILWITH;
               }
               {};
-            GET 6;
+            GET 3;
+            CDR;
             ADD;
             PUSH nat 1000;
             DIG 8;
@@ -194,29 +209,29 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {};
-            GET 6;
+            GET 3;
+            CDR;
             DUP 11;
             GET 6;
             DUP 11;
             GET;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {};
-            CAR;
-            GET 3;
+            GET 6;
             MUL;
             ADD;
             EDIV;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {
@@ -228,34 +243,46 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 155;
                 FAILWITH;
               }
               {};
-            GET 6;
+            GET 3;
+            CDR;
             MUL;
             EDIV;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 155;
                 FAILWITH;
               }
               {
                 CAR;
               };
-            PUSH nat 0;
+            DUP 8;
+            GET 6;
+            DUP 8;
+            GET;
+            IF_NONE
+              {
+                PUSH int 158;
+                FAILWITH;
+              }
+              {};
+            GET 5;
             DUP 9;
             GET 6;
             DUP 9;
             GET;
             IF_NONE
               {
-                PUSH int 150;
+                PUSH int 158;
                 FAILWITH;
               }
               {};
             CAR;
             CAR;
+            CDR;
             PAIR 3;
             CONS;
             SENDER;
@@ -264,12 +291,22 @@ code
             TRANSFER_TOKENS;
             CONS;
             DUP 3;
-            CAR;
-            GET 4;
-            CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
+            GET 6;
+            DUP 3;
+            GET;
             IF_NONE
               {
                 PUSH int 161;
+                FAILWITH;
+              }
+              {};
+            CAR;
+            CAR;
+            CAR;
+            CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
+            IF_NONE
+              {
+                PUSH int 169;
                 FAILWITH;
               }
               {};
@@ -288,11 +325,12 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 155;
                 FAILWITH;
               }
               {};
-            GET 6;
+            GET 3;
+            CDR;
             ADD;
             PUSH nat 1000;
             DIG 8;
@@ -307,29 +345,29 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {};
-            GET 6;
+            GET 3;
+            CDR;
             DUP 11;
             GET 6;
             DUP 11;
             GET;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {};
-            CAR;
-            GET 3;
+            GET 6;
             MUL;
             ADD;
             EDIV;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {
@@ -341,16 +379,17 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 155;
                 FAILWITH;
               }
               {};
-            GET 6;
+            GET 3;
+            CDR;
             MUL;
             EDIV;
             IF_NONE
               {
-                PUSH int 147;
+                PUSH int 155;
                 FAILWITH;
               }
               {
@@ -369,29 +408,29 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {};
-            GET 6;
+            GET 3;
+            CDR;
             DUP 11;
             GET 6;
             DUP 11;
             GET;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {};
-            CAR;
-            GET 3;
+            GET 6;
             MUL;
             ADD;
             EDIV;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {
@@ -399,10 +438,20 @@ code
               };
             SUB;
             ABS;
-            PUSH nat 0;
+            DUP 8;
+            GET 6;
+            DUP 8;
+            GET;
+            IF_NONE
+              {
+                PUSH int 161;
+                FAILWITH;
+              }
+              {};
+            GET 5;
             DUP 9;
-            GET 3;
             CAR;
+            GET 4;
             PAIR 3;
             CONS;
             SENDER;
@@ -411,12 +460,22 @@ code
             TRANSFER_TOKENS;
             CONS;
             DUP 3;
+            GET 6;
+            DUP 3;
+            GET;
+            IF_NONE
+              {
+                PUSH int 164;
+                FAILWITH;
+              }
+              {};
             CAR;
-            GET 4;
+            CAR;
+            CAR;
             CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
             IF_NONE
               {
-                PUSH int 161;
+                PUSH int 169;
                 FAILWITH;
               }
               {};
@@ -436,29 +495,29 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {};
-            GET 6;
+            GET 3;
+            CDR;
             DUP 10;
             GET 6;
             DUP 10;
             GET;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {};
-            CAR;
-            GET 3;
+            GET 6;
             MUL;
             ADD;
             EDIV;
             IF_NONE
               {
-                PUSH int 146;
+                PUSH int 154;
                 FAILWITH;
               }
               {
@@ -470,27 +529,36 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 156;
+                PUSH int 164;
                 FAILWITH;
               }
               {};
-            CAR;
-            GET 3;
+            GET 6;
             SUB;
             ABS;
-            PUSH nat 0;
+            DUP 8;
+            GET 6;
+            DUP 8;
+            GET;
+            IF_NONE
+              {
+                PUSH int 164;
+                FAILWITH;
+              }
+              {};
+            GET 5;
             DUP 9;
             GET 6;
             DUP 9;
             GET;
             IF_NONE
               {
-                PUSH int 156;
+                PUSH int 164;
                 FAILWITH;
               }
               {};
             CAR;
-            GET 4;
+            GET 3;
             PAIR 3;
             CONS;
             SENDER;
@@ -508,31 +576,40 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 158;
+                PUSH int 166;
                 FAILWITH;
               }
               {};
+            UNPAIR;
+            UNPAIR;
+            SWAP;
+            CAR;
             PUSH nat 1;
-            DIG 7;
+            DIG 9;
             GET 6;
-            DIG 7;
+            DIG 9;
             GET;
             IF_NONE
               {
-                PUSH int 158;
+                PUSH int 166;
                 FAILWITH;
               }
               {};
-            GET 3;
+            CAR;
+            GET 4;
             SUB;
             ISNAT;
             IF_NONE
               {
-                PUSH int 158;
+                PUSH int 166;
                 FAILWITH;
               }
               {};
-            UPDATE 3;
+            SWAP;
+            PAIR;
+            SWAP;
+            PAIR;
+            PAIR;
             SOME;
             SWAP;
             UPDATE;
@@ -544,7 +621,8 @@ code
         IF_LEFT
           {
             DUP;
-            GET 6;
+            GET 3;
+            CDR;
             PUSH nat 0;
             SWAP;
             COMPARE;
@@ -552,7 +630,8 @@ code
             IF
               {
                 DUP;
-                GET 6;
+                GET 3;
+                CDR;
                 PUSH nat 250;
                 SWAP;
                 COMPARE;
@@ -580,17 +659,32 @@ code
             DUG 4;
             GET 5;
             PAIR;
-            DUP 4;
+            DIG 3;
+            DUP;
             GET 3;
-            PAIR;
-            SENDER;
-            DUP 5;
-            CAR;
             CDR;
+            SWAP;
+            DUP;
+            DUG 5;
+            GET 3;
+            CAR;
             PAIR;
-            DUP 5;
+            PAIR;
+            DUP 4;
+            CAR;
+            GET 4;
+            SENDER;
+            PAIR;
+            DIG 4;
+            DUP;
+            CAR;
+            GET 3;
+            SWAP;
+            DUP;
+            DUG 6;
             CAR;
             CAR;
+            PAIR;
             PAIR;
             PAIR;
             SOME;
@@ -606,7 +700,7 @@ code
             CONTRACT %transfer (list (pair address (list (pair address (pair nat nat)))));
             IF_NONE
               {
-                PUSH int 161;
+                PUSH int 169;
                 FAILWITH;
               }
               {};
@@ -615,9 +709,11 @@ code
             NIL (pair address (pair nat nat));
             DIG 5;
             DUP;
-            GET 3;
+            CAR;
+            GET 4;
             SWAP;
-            GET 5;
+            GET 3;
+            CAR;
             SELF_ADDRESS;
             PAIR 3;
             CONS;
@@ -641,8 +737,8 @@ code
                 SWAP;
                 DUP;
                 DUG 2;
-                GET 3;
                 CAR;
+                GET 4;
                 SENDER;
                 COMPARE;
                 EQ;
@@ -667,8 +763,8 @@ code
                 SWAP;
                 DUP;
                 DUG 2;
-                GET 3;
                 CAR;
+                GET 4;
                 SENDER;
                 COMPARE;
                 EQ;
@@ -680,13 +776,14 @@ code
                   };
                 SWAP;
                 UNPAIR;
-                SWAP;
                 UNPAIR;
-                CDR;
+                SWAP;
+                CAR;
                 DIG 3;
-                PAIR;
+                SWAP;
                 PAIR;
                 SWAP;
+                PAIR;
                 PAIR;
               };
             NIL operation;

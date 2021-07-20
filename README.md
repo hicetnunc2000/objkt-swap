@@ -16,12 +16,12 @@ https://smartpy.io/ide?cid=QmafzemiRSa59nKeRPt9gURDJe34mnXhUwQMSjauqYXbQK&k=430d
 ```
 hDAO: KT1AFA2mwNUMNd4SsujE1YYp29vd8BZejyKW
 OBJKT-hDAO Curation: KT1TybhR7XraG75JFYKSrh7KnxukMBT5dor6
-Hic et Nunc Minter: KT1Hkg5qeNhfwpKW4fXvq7HGZB9z2EnmCCA9
+Hic et Nunc Minter (OBJKT Swap v1): KT1Hkg5qeNhfwpKW4fXvq7HGZB9z2EnmCCA9
 OBJKTs: KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton
 SUBJKTs: KT1My1wDZHDGweCrJnQJi3wcFaS67iksirvj
 Hic et nunc Unregistry: KT1WN8NrfvH18g7uiBY62ThcNpq3ggqfubhE
-Hic et nunc Markeplace: KT1HbQepzV1nVGg8QVznG7z4RcHseD5kwqBn
-hDAO Marketplace: KT1Qxq1NHq4j5GC91YNpyHcwiUaMWeYtQtCQ
+Hic et nunc Markeplace (OBJKT Swap v2): KT1HbQepzV1nVGg8QVznG7z4RcHseD5kwqBn
+hDAO Marketplace (OBJKT Swap v2.1): KT1KH1MYXaYMuRquo1dBqKHPBgK7NHUG8qvx
 Report: 
 Galleries:
 ```
