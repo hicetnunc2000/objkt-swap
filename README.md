@@ -14,7 +14,7 @@ sell orders implementing xtz:[FA2](https://gitlab.com/tzip/tzip/-/blob/master/pr
 https://smartpy.io/ide?cid=QmRYjwUTq9Sezc6LDuHDTGxFHXbsJkuyXjZ7sA2GKe1DSP&k=ef5568debf706a187102
 
 ```
-hDAO: KT1AFA2mwNUMNd4SsujE1YYp29vd8BZejyKW
+hDAO: KT1AFA2mwNUMNd4SsujE1YYp29vd8BZejyKW token id 0 metadata ipfs://QmSVsfwH8es7Ur2eqto9hVpcd2dfWASmEaNxTPpcymuJzg
 OBJKT-hDAO Curation: KT1TybhR7XraG75JFYKSrh7KnxukMBT5dor6
 Hic et Nunc Minter (OBJKT Swap v1): KT1Hkg5qeNhfwpKW4fXvq7HGZB9z2EnmCCA9
 OBJKTs: KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton
