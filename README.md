@@ -22,8 +22,6 @@ SUBJKTs: KT1My1wDZHDGweCrJnQJi3wcFaS67iksirvj
 Hic et nunc Unregistry: KT1WN8NrfvH18g7uiBY62ThcNpq3ggqfubhE
 Hic et nunc Markeplace (OBJKT Swap v2): KT1HbQepzV1nVGg8QVznG7z4RcHseD5kwqBn
 hDAO Marketplace (OBJKT Swap v2.1): KT1QPvv7sWVaT9PcPiC4fN9BgfX8NB2d5WzL
-Report: 
-Galleries:
 ```
 
 `
