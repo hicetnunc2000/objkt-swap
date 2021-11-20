@@ -3,7 +3,7 @@ class Marketplace(sp.Contract):
         self.init(
             metadata = metadata,
             manager = manager,
-            fee_manager = manager,
+            fee_recipient = manager,
             allowed_fa2s = sp.set([objkt]),
             swaps = sp.big_map(tkey=sp.TNat, tvalue=sp.TRecord(issuer=sp.TAddress, fa2=sp.TAddress, objkt_amount=sp.TNat, objkt_id=sp.TNat, xtz_per_objkt=sp.TMutez, royalties=sp.TNat, creator=sp.TAddress)),
             counter = 500000,
@@ -36,7 +36,7 @@ class Marketplace(sp.Contract):
             sp.send(self.data.swaps[params.swap_id].creator, sp.utils.nat_to_mutez(self.royalties))
                 
             # send management fees
-            sp.send(self.data.fee_manager, sp.utils.nat_to_mutez(abs(self.fee - self.royalties)))
+            sp.send(self.data.fee_recipient, sp.utils.nat_to_mutez(abs(self.fee - self.royalties)))
                 
             # send value to issuer
             sp.send(self.data.swaps[params.swap_id].issuer, sp.amount - sp.utils.nat_to_mutez(self.fee))
@@ -53,14 +53,14 @@ class Marketplace(sp.Contract):
     
     @sp.entry_point
     def update_fee(self, params):
-        sp.verify(sp.sender == self.data.fee_manager)
+        sp.verify(sp.sender == self.data.manager)
         sp.verify(params <= 250)
         self.data.fee = params
         
     @sp.entry_point
-    def update_fee_manager(self, params):
-        sp.verify(sp.sender == self.data.fee_manager)
-        self.data.fee_manager = params
+    def update_fee_recipient(self, params):
+        sp.verify(sp.sender == self.data.manager)
+        self.data.fee_recipient = params
         
     @sp.entry_point
     def update_manager(self, params):
