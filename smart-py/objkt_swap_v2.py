@@ -36,7 +36,7 @@ class Marketplace(sp.Contract):
             sp.send(self.data.swaps[params.swap_id].creator, sp.utils.nat_to_mutez(self.royalties))
                 
             # send management fees
-            sp.send(self.data.manager, sp.utils.nat_to_mutez(abs(self.fee - self.royalties)))
+            sp.send(self.data.fee_manager, sp.utils.nat_to_mutez(abs(self.fee - self.royalties)))
                 
             # send value to issuer
             sp.send(self.data.swaps[params.swap_id].issuer, sp.amount - sp.utils.nat_to_mutez(self.fee))
