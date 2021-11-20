@@ -54,6 +54,7 @@ class Marketplace(sp.Contract):
     @sp.entry_point
     def update_fee(self, params):
         sp.verify(sp.sender == self.data.fee_manager)
+        sp.verify(params <= 250)
         self.data.fee = params
         
     @sp.entry_point
