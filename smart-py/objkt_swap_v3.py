@@ -110,7 +110,7 @@ class Marketplace(sp.Contract):
 
         # Check that the swap id is present in the swaps big map
         sp.verify(self.data.swaps.contains(params),
-                  message="The provided swap_id doesn't not exist.")
+                  message="The provided swap_id doesn't exist.")
 
         # Check that the provided tez amount is exactly the edition price
         sp.verify(
@@ -165,7 +165,7 @@ class Marketplace(sp.Contract):
 
         # Check that the swap id is present in the swaps big map
         sp.verify(self.data.swaps.contains(params),
-                  message="The provided swap_id doesn't not exist.")
+                  message="The provided swap_id doesn't exist.")
 
         # Check that the swap issuer is cancelling the swap
         sp.verify(sp.sender == self.data.swaps[params].issuer,
@@ -194,7 +194,7 @@ class Marketplace(sp.Contract):
         # Define the input parameter data type
         sp.set_type(params, sp.TNat)
 
-        # Check that the manages executed the entry point
+        # Check that the manager executed the entry point
         self.check_is_manager()
 
         # Check that the new fee is not larger than 25%
@@ -212,7 +212,7 @@ class Marketplace(sp.Contract):
         # Define the input parameter data type
         sp.set_type(params, sp.TAddress)
 
-        # Check that the manages executed the entry point
+        # Check that the manager executed the entry point
         self.check_is_manager()
 
         # Set the new management fee recipient address
@@ -226,7 +226,7 @@ class Marketplace(sp.Contract):
         # Define the input parameter data type
         sp.set_type(params, sp.TAddress)
 
-        # Check that the manages executed the entry point
+        # Check that the manager executed the entry point
         self.check_is_manager()
 
         # Set the new manager address
@@ -240,7 +240,7 @@ class Marketplace(sp.Contract):
         # Define the input parameter data type
         sp.set_type(params, sp.TAddress)
 
-        # Check that the manages executed the entry point
+        # Check that the manager executed the entry point
         self.check_is_manager()
 
         # Add the new FA2 token address
@@ -254,7 +254,7 @@ class Marketplace(sp.Contract):
         # Define the input parameter data type
         sp.set_type(params, sp.TAddress)
 
-        # Check that the manages executed the entry point
+        # Check that the manager executed the entry point
         self.check_is_manager()
 
         # Check that the FA2 token address is present in the set
