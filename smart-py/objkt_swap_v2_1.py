@@ -1,3 +1,6 @@
+import smartpy as sp
+
+
 class OBJKTSWAPV21(sp.Contract):
     def __init__(self, manager, metadata, objkts):
         self.init(

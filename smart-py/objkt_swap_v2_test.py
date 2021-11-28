@@ -1,49 +1,52 @@
-"""Unit tests for the Marketplace class.
+"""Unit tests for the Marketplace v2 class.
 
 """
 
 import smartpy as sp
 
-# Import the OBJKT and marketplace modules
-objktContract = sp.io.import_script_from_url("file:smart-py/fa2.py")
-marketplaceContractV1 = sp.io.import_script_from_url("file:smart-py/objkt_swap_v1.py")
-marketplaceContractV2 = sp.io.import_script_from_url("file:smart-py/objkt_swap_v2.py")
+# Import the FA2 and marketplaces modules
+fa2Contract = sp.io.import_script_from_url("file:smart-py/fa2.py")
+marketplaceContractV1 = sp.io.import_script_from_url(
+    "file:smart-py/objkt_swap_v1.py")
+marketplaceContractV2 = sp.io.import_script_from_url(
+    "file:smart-py/objkt_swap_v2.py")
+
 
 def get_test_environment():
-    # Create the test user accounts
+    # Create the test accounts
     admin = sp.test_account("admin")
-    user1 = sp.test_account("user1")
-    user2 = sp.test_account("user2")
+    artist1 = sp.test_account("artist1")
+    collector1 = sp.test_account("collector1")
 
     # Initialize the OBJKT contract
-    objkt = objktContract.FA2(
-        objktContract.FA2_config(),
-        admin.address,
-        sp.utils.metadata_of_url("ipfs://QmPCwYKmEWLCHrnT6KcHREozuDqeizioHeAWGvnaaBdCoe"))
+    objkt = fa2Contract.FA2(
+        config=fa2Contract.FA2_config(),
+        admin=admin.address,
+        meta=sp.utils.metadata_of_url("ipfs://aaa"))
 
     # Initialize the hDAO contract
-    hdao = objktContract.FA2(
-        objktContract.FA2_config(),
-        admin.address,
-        sp.utils.metadata_of_url("ipfs://QmPCwYKmEWLCHrnT6KcHREozuDqeizioHeAWGvnaaBdCoe"))
+    hdao = fa2Contract.FA2(
+        config=fa2Contract.FA2_config(),
+        admin=admin.address,
+        meta=sp.utils.metadata_of_url("ipfs://bbb"))
 
     # Initialize a dummy curate contract
     curate = sp.Contract()
 
     # Initialize the marketplace v1 contract
     marketplaceV1 = marketplaceContractV1.OBJKTSwap(
-        objkt.address,
-        hdao.address,
-        admin.address,
-        sp.utils.metadata_of_url("ipfs://QmWQNA1A8cKZPoaaZMuqSuLud7GQTSxbbwCXhZ76DgEqHM"),
-        curate.address)
+        objkt=objkt.address,
+        hdao=hdao.address,
+        manager=admin.address,
+        metadata=sp.utils.metadata_of_url("ipfs://ccc"),
+        curate=curate.address)
 
     # Initialize the marketplace v2 contract
     marketplaceV2 = marketplaceContractV2.Marketplace(
-        objkt.address,
-        sp.utils.metadata_of_url("ipfs://QmWQNA1A8cKZPoaaZMuqSuLud7GQTSxbbwCXhZ76DgEqHM"),
-        admin.address,
-        25)
+        objkt=objkt.address,
+        metadata=sp.utils.metadata_of_url("ipfs://ddd"),
+        manager=admin.address,
+        fee=25)
 
     # Add all the contracts to the test scenario
     scenario = sp.test_scenario()
@@ -60,52 +63,56 @@ def get_test_environment():
     testEnvironment = {
         "scenario" : scenario,
         "admin" : admin,
-        "user1" : user1,
-        "user2" : user2,
+        "artist1" : artist1,
+        "collector1" : collector1,
         "objkt" : objkt,
         "hdao" : hdao,
         "curate" : curate,
         "marketplaceV1" : marketplaceV1,
-        "marketplaceV2" : marketplaceV2
-        }
+        "marketplaceV2" : marketplaceV2}
 
     return testEnvironment
+
 
 @sp.add_test(name="Test swap and collect")
 def test_swap_and_collect():
     # Get the test environment
     testEnvironment = get_test_environment()
-    user1 = testEnvironment["user1"]
-    user2 = testEnvironment["user2"]
+    scenario = testEnvironment["scenario"]
+    artist1 = testEnvironment["artist1"]
+    collector1 = testEnvironment["collector1"]
     objkt = testEnvironment["objkt"]
     marketplaceV1 = testEnvironment["marketplaceV1"]
     marketplaceV2 = testEnvironment["marketplaceV2"]
-    scenario = testEnvironment["scenario"]
 
     # Mint an OBJKT
     scenario += marketplaceV1.mint_OBJKT(
-        address=user1.address,
+        address=artist1.address,
         amount=100,
-        metadata=sp.pack("ipfs://QmYVK9epp77qmv5itE83XG1uVS6tyox7ePhxXsx6LKqysN"),
-        royalties=110).run(sender=user1)
+        metadata=sp.pack("ipfs://eee"),
+        royalties=100).run(sender=artist1)
 
     # Swap the OBJKT in the marketplace v2 contract
     scenario += objkt.update_operators(
         [sp.variant("add_operator", objkt.operator_param.make(
-            owner = user1.address,
+            owner=artist1.address,
             operator=marketplaceV2.address,
-            token_id=152))]).run(sender=user1)
+            token_id=152))]).run(sender=artist1)
     scenario += marketplaceV2.swap(
-        fa2=objkt.address,
-        objkt_id=152,
         objkt_amount=50,
-        xtz_per_objkt=sp.mutez(100000),
+        objkt_id=152,
+        xtz_per_objkt=sp.tez(1),
         royalties=100,
-        creator=user1.address).run(sender=user1)
+        creator=artist1.address).run(sender=artist1)
+    scenario += objkt.update_operators(
+        [sp.variant("remove_operator", objkt.operator_param.make(
+            owner=artist1.address,
+            operator=marketplaceV2.address,
+            token_id=152))]).run(sender=artist1)
 
     # Collect the OBJKT
     scenario += marketplaceV2.collect(
-        swap_id=500000).run(sender=user2, amount=sp.mutez(100000))
+        swap_id=500000).run(sender=collector1, amount=sp.tez(1))
 
     # Check that all the tez have been sent
     scenario.verify(marketplaceV2.balance == sp.mutez(0))
