@@ -57,8 +57,8 @@ def get_test_environment():
     # Add all the contracts to the test scenario
     scenario = sp.test_scenario()
     scenario += objkt
-    scenario += newobjkt
     scenario += hdao
+    scenario += newobjkt
     scenario += curate
     scenario += marketplaceV1
     scenario += marketplaceV3
@@ -90,7 +90,6 @@ def test_swap_and_collect():
     testEnvironment = get_test_environment()
     scenario = testEnvironment["scenario"]
     artist1 = testEnvironment["artist1"]
-    artist2 = testEnvironment["artist2"]
     collector1 = testEnvironment["collector1"]
     collector2 = testEnvironment["collector2"]
     objkt = testEnvironment["objkt"]
@@ -361,7 +360,6 @@ def test_add_and_remove_fa2():
     scenario = testEnvironment["scenario"]
     admin = testEnvironment["admin"]
     artist1 = testEnvironment["artist1"]
-    artist2 = testEnvironment["artist2"]
     collector1 = testEnvironment["collector1"]
     objkt = testEnvironment["objkt"]
     newobjkt = testEnvironment["newobjkt"]
@@ -382,7 +380,7 @@ def test_add_and_remove_fa2():
     royalties = 100
 
     scenario += newobjkt.update_operators(
-        [sp.variant("add_operator", objkt.operator_param.make(
+        [sp.variant("add_operator", newobjkt.operator_param.make(
             owner=artist1.address,
             operator=marketplaceV3.address,
             token_id=objkt_id))]).run(sender=artist1)
@@ -393,8 +391,8 @@ def test_add_and_remove_fa2():
         xtz_per_objkt=sp.mutez(edition_price),
         royalties=royalties,
         creator=artist1.address).run(valid=False, sender=artist1)
-    scenario += objkt.update_operators(
-        [sp.variant("remove_operator", objkt.operator_param.make(
+    scenario += newobjkt.update_operators(
+        [sp.variant("remove_operator", newobjkt.operator_param.make(
             owner=artist1.address,
             operator=marketplaceV3.address,
             token_id=objkt_id))]).run(sender=artist1)
@@ -409,6 +407,11 @@ def test_add_and_remove_fa2():
     scenario.verify(marketplaceV3.data.allowed_fa2s[new_fa2])
 
     # Check that now is possible to swap the newOBJKT
+    scenario += newobjkt.update_operators(
+        [sp.variant("add_operator", newobjkt.operator_param.make(
+            owner=artist1.address,
+            operator=marketplaceV3.address,
+            token_id=objkt_id))]).run(sender=artist1)
     scenario += marketplaceV3.swap(
         fa2=newobjkt.address,
         objkt_id=objkt_id,
@@ -416,6 +419,11 @@ def test_add_and_remove_fa2():
         xtz_per_objkt=sp.mutez(edition_price),
         royalties=royalties,
         creator=artist1.address).run(sender=artist1)
+    scenario += newobjkt.update_operators(
+        [sp.variant("remove_operator", newobjkt.operator_param.make(
+            owner=artist1.address,
+            operator=marketplaceV3.address,
+            token_id=objkt_id))]).run(sender=artist1)
 
     # Check that the newOBJKT ledger information is correct
     scenario.verify(newobjkt.data.ledger[(artist1.address, objkt_id)].balance == editions - swapped_editions)
@@ -438,6 +446,11 @@ def test_add_and_remove_fa2():
     # Check that now is not allowed to trade newOBJKT tokens
     scenario.verify(marketplaceV3.data.allowed_fa2s[objkt.address])
     scenario.verify(~marketplaceV3.data.allowed_fa2s[newobjkt.address])
+    scenario += newobjkt.update_operators(
+        [sp.variant("add_operator", newobjkt.operator_param.make(
+            owner=artist1.address,
+            operator=marketplaceV3.address,
+            token_id=objkt_id))]).run(sender=artist1)
     scenario += marketplaceV3.swap(
         fa2=newobjkt.address,
         objkt_id=objkt_id,
@@ -445,8 +458,13 @@ def test_add_and_remove_fa2():
         xtz_per_objkt=sp.mutez(edition_price),
         royalties=royalties,
         creator=artist1.address).run(valid=False, sender=artist1)
+    scenario += newobjkt.update_operators(
+        [sp.variant("remove_operator", newobjkt.operator_param.make(
+            owner=artist1.address,
+            operator=marketplaceV3.address,
+            token_id=objkt_id))]).run(sender=artist1)
 
-    # Check that however it is possible to collect the previous swap and to cancel it
+    # Check that however it is still possible to collect the previous swap and to cancel it
     scenario += marketplaceV3.collect(0).run(sender=collector1, amount=sp.mutez(edition_price))
     scenario += marketplaceV3.cancel_swap(0).run(sender=artist1)
 
