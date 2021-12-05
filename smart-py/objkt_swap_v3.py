@@ -63,6 +63,13 @@ class Marketplace(sp.Contract):
         sp.verify(sp.sender == self.data.manager,
                   message="This can only be executed by the manager")
 
+    def check_no_tez_transfer(self):
+        """Checks that no tez were transferred in the operation.
+
+        """
+        sp.verify(sp.amount == sp.tez(0),
+                  message="The operation does not need tez transfers")
+
     @sp.entry_point
     def swap(self, params):
         """Swaps several editions of a token for a fixed price.
@@ -75,7 +82,11 @@ class Marketplace(sp.Contract):
             objkt_amount=sp.TNat,
             xtz_per_objkt=sp.TMutez,
             royalties=sp.TNat,
-            creator=sp.TAddress))
+            creator=sp.TAddress).layout(
+                ("fa2", ("objkt_id", ("objkt_amount", ("xtz_per_objkt", ("royalties", "creator")))))))
+
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
 
         # Check that the token is one of the allowed tokens to trade
         sp.verify(self.data.allowed_fa2s.get(params.fa2, default_value=False),
@@ -169,6 +180,9 @@ class Marketplace(sp.Contract):
         # Define the input parameter data type
         sp.set_type(swap_id, sp.TNat)
 
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
+
         # Check that the swap id is present in the swaps big map
         sp.verify(self.data.swaps.contains(swap_id),
                   message="The provided swap_id doesn't exist")
@@ -204,6 +218,9 @@ class Marketplace(sp.Contract):
         # Check that the manager executed the entry point
         self.check_is_manager()
 
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
+
         # Check that the new fee is not larger than 25%
         sp.verify(new_fee <= 250,
                   message="The management fee cannot be higher than 25%")
@@ -222,6 +239,9 @@ class Marketplace(sp.Contract):
         # Check that the manager executed the entry point
         self.check_is_manager()
 
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
+
         # Set the new management fee recipient address
         self.data.fee_recipient = new_fee_recipient
 
@@ -235,6 +255,9 @@ class Marketplace(sp.Contract):
 
         # Check that the manager executed the entry point
         self.check_is_manager()
+
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
 
         # Set the new manager address
         self.data.manager = new_manager
@@ -250,6 +273,9 @@ class Marketplace(sp.Contract):
         # Check that the manager executed the entry point
         self.check_is_manager()
 
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
+
         # Add the new FA2 token address
         self.data.allowed_fa2s[fa2] = True
 
@@ -263,6 +289,9 @@ class Marketplace(sp.Contract):
 
         # Check that the manager executed the entry point
         self.check_is_manager()
+
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
 
         # Dissable the FA2 token address
         self.data.allowed_fa2s[fa2] = False
