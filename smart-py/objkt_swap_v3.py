@@ -293,11 +293,11 @@ class Marketplace(sp.Contract):
         # Check that no tez have been transferred
         self.check_no_tez_transfer()
 
-        # Dissable the FA2 token address
+        # Disable the FA2 token address
         self.data.allowed_fa2s[fa2] = False
 
     def fa2_transfer(self, fa2, from_, to_, token_id, token_amount):
-        """Transfers a number of editions of a FA2 token between to addresses.
+        """Transfers a number of editions of a FA2 token between two addresses.
 
         """
         # Get a handle to the FA2 token transfer entry point
