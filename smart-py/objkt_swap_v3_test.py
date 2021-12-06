@@ -175,7 +175,7 @@ def test_swap_and_collect():
     scenario.verify(objkt.data.ledger[(collector2.address, objkt_id)].balance == 1)
 
     # Check that the swaps big map has been updated
-    scenario.verify(marketplaceV3.data.swaps[0].objkt_amount == 0)
+    scenario.verify(~marketplaceV3.data.swaps.contains(0))
 
     # Check that the swap cannot be cancelled twice
     scenario += marketplaceV3.cancel_swap(0).run(valid=False, sender=artist1)
