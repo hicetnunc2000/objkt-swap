@@ -204,8 +204,8 @@ class Marketplace(sp.Contract):
             token_id=swap.objkt_id,
             token_amount=swap.objkt_amount)
 
-        # Delete the swap entry in the the swaps big map
-        del self.data.swaps[swap_id]
+        # Update the number of editions available in the swaps big map
+        swap.objkt_amount = 0
 
     @sp.entry_point
     def update_fee(self, new_fee):
