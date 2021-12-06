@@ -43,7 +43,8 @@ class Marketplace(sp.Contract):
             allowed_fa2s=sp.TBigMap(sp.TAddress, sp.TBool),
             swaps=sp.TBigMap(sp.TNat, Marketplace.SWAP_TYPE),
             fee=sp.TNat,
-            counter=sp.TNat))
+            counter=sp.TNat,
+            paused=sp.TBool))
 
         # Initialize the contract storage
         self.init(
@@ -53,7 +54,8 @@ class Marketplace(sp.Contract):
             allowed_fa2s=allowed_fa2s,
             swaps=sp.big_map(),
             fee=fee,
-            counter=0)
+            counter=0,
+            paused=False)
 
     def check_is_manager(self):
         """Checks that the address that called the entry point is the contract
@@ -62,6 +64,13 @@ class Marketplace(sp.Contract):
         """
         sp.verify(sp.sender == self.data.manager,
                   message="This can only be executed by the manager")
+
+    def check_is_not_paused(self):
+        """Checks that the contract is not paused.
+
+        """
+        sp.verify(~self.data.paused,
+                  message="This contract is paused")
 
     def check_no_tez_transfer(self):
         """Checks that no tez were transferred in the operation.
@@ -84,6 +93,9 @@ class Marketplace(sp.Contract):
             royalties=sp.TNat,
             creator=sp.TAddress).layout(
                 ("fa2", ("objkt_id", ("objkt_amount", ("xtz_per_objkt", ("royalties", "creator")))))))
+
+        # Check that the contract is not paused
+        self.check_is_not_paused()
 
         # Check that no tez have been transferred
         self.check_no_tez_transfer()
@@ -128,6 +140,9 @@ class Marketplace(sp.Contract):
         """
         # Define the input parameter data type
         sp.set_type(swap_id, sp.TNat)
+
+        # Check that the contract is not paused
+        self.check_is_not_paused()
 
         # Check that the swap id is present in the swaps big map
         sp.verify(self.data.swaps.contains(swap_id),
@@ -295,6 +310,23 @@ class Marketplace(sp.Contract):
 
         # Disable the FA2 token address
         self.data.allowed_fa2s[fa2] = False
+
+    @sp.entry_point
+    def set_pause(self, pause):
+        """Pause or not the contract.
+
+        """
+        # Define the input parameter data type
+        sp.set_type(pause, sp.TBool)
+
+        # Check that the manager executed the entry point
+        self.check_is_manager()
+
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
+
+        # Pause or unpause the contract
+        self.data.paused = pause
 
     def fa2_transfer(self, fa2, from_, to_, token_id, token_amount):
         """Transfers a number of editions of a FA2 token between two addresses.
