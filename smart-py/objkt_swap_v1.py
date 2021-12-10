@@ -1,5 +1,6 @@
 import smartpy as sp
 
+
 class OBJKTSwap(sp.Contract):
     def __init__(self, objkt, hdao, manager, metadata, curate):
         # TODO refactor these default variables as they can cause

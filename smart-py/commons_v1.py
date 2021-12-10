@@ -1,5 +1,7 @@
-# commons 1
+import smartpy as sp
 
+
+# commons 1
 class Multisig(sp.Contract):
     def __init__(self, manager):
         self.init(
