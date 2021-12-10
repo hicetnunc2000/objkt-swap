@@ -3,13 +3,14 @@
 """
 
 import smartpy as sp
+import os
 
 # Import the FA2 and marketplaces modules
-fa2Contract = sp.io.import_script_from_url("file:smart-py/fa2.py")
+fa2Contract = sp.io.import_script_from_url(f"file://{os.getcwd()}/fa2.py")
 marketplaceContractV1 = sp.io.import_script_from_url(
-    "file:smart-py/objkt_swap_v1.py")
+    f"file://{os.getcwd()}/objkt_swap_v1.py")
 marketplaceContractV2 = sp.io.import_script_from_url(
-    "file:smart-py/objkt_swap_v2.py")
+    f"file://{os.getcwd()}/objkt_swap_v2.py")
 
 
 def get_test_environment():

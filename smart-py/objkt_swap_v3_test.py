@@ -3,11 +3,12 @@
 """
 
 import smartpy as sp
+import os
 
 # Import the FA2 and marketplaces modules
-fa2Contract = sp.io.import_script_from_url("file:smart-py/fa2.py")
-marketplaceContractV1 = sp.io.import_script_from_url("file:smart-py/objkt_swap_v1.py")
-marketplaceContractV3 = sp.io.import_script_from_url("file:smart-py/objkt_swap_v3.py")
+fa2Contract = sp.io.import_script_from_url(f"file://{os.getcwd()}/fa2.py")
+marketplaceContractV1 = sp.io.import_script_from_url(f"file://{os.getcwd()}/objkt_swap_v1.py")
+marketplaceContractV3 = sp.io.import_script_from_url(f"file://{os.getcwd()}/objkt_swap_v3.py")
 
 
 def get_test_environment():
@@ -96,6 +97,9 @@ def test_swap_and_collect():
     marketplaceV1 = testEnvironment["marketplaceV1"]
     marketplaceV3 = testEnvironment["marketplaceV3"]
 
+    # should be correct genesis number
+    scenario.verify(marketplaceV1.data.objkt_id == 152)
+
     # Mint an OBJKT
     editions = 100
     scenario += marketplaceV1.mint_OBJKT(
@@ -103,6 +107,9 @@ def test_swap_and_collect():
         amount=editions,
         metadata=sp.pack("ipfs://fff"),
         royalties=100).run(sender=artist1)
+
+    # objkt number must have been incremented by 1
+    scenario.verify(marketplaceV1.data.objkt_id == 153)
 
     # Add the marketplace contract as an operator to be able to swap it
     objkt_id = 152
@@ -531,3 +538,103 @@ def test_pause_contract():
         creator=artist1.address).run(sender=artist1)
     scenario += marketplaceV3.collect(1).run(sender=collector1, amount=sp.mutez(edition_price))
     scenario += marketplaceV3.cancel_swap(1).run(sender=artist1)
+
+@sp.add_test(name="Test mint failure conditions")
+def test_mint_failure_conditions():
+    # Get the test environment
+    testEnvironment = get_test_environment()
+    scenario = testEnvironment["scenario"]
+    artist1 = testEnvironment["artist1"]
+    collector1 = testEnvironment["collector1"]
+    collector2 = testEnvironment["collector2"]
+    objkt = testEnvironment["objkt"]
+    marketplaceV1 = testEnvironment["marketplaceV1"]
+    marketplaceV3 = testEnvironment["marketplaceV3"]
+
+    # should be correct genesis number
+    scenario.verify(marketplaceV1.data.objkt_id == 152)
+
+    # Mint an OBJKT but with 0 copies
+    scenario += marketplaceV1.mint_OBJKT(
+        address=artist1.address,
+        amount=0,
+        metadata=sp.pack("ipfs://fff"),
+        royalties=100).run(sender=artist1,valid=False)
+
+    # objkt number must not have changed
+    scenario.verify(marketplaceV1.data.objkt_id == 152)
+
+    # Mint an OBJKT but with too many copies
+    scenario += marketplaceV1.mint_OBJKT(
+        address=artist1.address,
+        amount=100000,
+        metadata=sp.pack("ipfs://fff"),
+        royalties=100).run(sender=artist1,valid=False)
+
+    # objkt number must not have changed
+    scenario.verify(marketplaceV1.data.objkt_id == 152)
+
+    # no royalties were injected
+    scenario.verify(marketplaceV1.data.royalties.contains(152) == False)
+
+    # try to mint an objkt on behalf of someone else and fail
+    scenario += marketplaceV1.mint_OBJKT(
+        address = artist1.address,
+        amount = 1,
+        royalties = 200,
+        # how to turn json into this?
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = collector1.address,
+        valid = False
+    )
+
+    # objkt number must not have changed
+    scenario.verify(marketplaceV1.data.objkt_id == 152)
+
+    # try to mint an objkt with too many royalties
+    scenario += marketplaceV1.mint_OBJKT(
+        address = artist1.address,
+        amount = 2,
+        royalties = 300,
+        metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    ).run(
+        sender = artist1.address,
+        valid = False
+    )
+
+    # objkt number must not have changed
+    scenario.verify(marketplaceV1.data.objkt_id == 152)
+
+    # try to mint an objkt with too few royalties
+    #
+    # TODO should fail but passes currently
+    # scenario += marketplaceV1.mint_OBJKT(
+    #     address = artist1.address,
+    #     amount = 2,
+    #     royalties = 5,
+    #     metadata = sp.bytes('0x697066733a2f2f516d61794e7a7258547a354237577747574868314459524c7869646646504676775a377a364b7443377268456468')
+    # ).run(
+    #     sender = artist1.address,
+    #     valid = False
+    # )
+
+    # objkt number must not have changed
+    scenario.verify(marketplaceV1.data.objkt_id == 152)
+
+    # try to mint without metadata and fail
+    #
+    # TODO null metadata should fail but passes currently
+    #
+    # scenario += marketplaceV1.mint_OBJKT(
+    #     address = artist1.address,
+    #     amount = 1,
+    #     royalties = 200,
+    #     metadata = sp.bytes('0x00')
+    # ).run(
+    #     sender = artist1.address,
+    #     valid = False
+    # )
+
+    # objkt number must not have changed
+    scenario.verify(marketplaceV1.data.objkt_id == 152)
