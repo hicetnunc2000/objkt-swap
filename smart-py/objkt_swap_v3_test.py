@@ -7,7 +7,9 @@ import os
 
 # Import the FA2 and marketplaces modules
 fa2Contract = sp.io.import_script_from_url(f"file://{os.getcwd()}/fa2.py")
+# for minting
 marketplaceContractV1 = sp.io.import_script_from_url(f"file://{os.getcwd()}/objkt_swap_v1.py")
+# for swapping
 marketplaceContractV3 = sp.io.import_script_from_url(f"file://{os.getcwd()}/objkt_swap_v3.py")
 
 
@@ -638,3 +640,37 @@ def test_mint_failure_conditions():
 
     # objkt number must not have changed
     scenario.verify(marketplaceV1.data.objkt_id == 152)
+
+@sp.add_test(name="Test swap v3 failure conditions")
+def test_swap_failure_conditions():
+    # Get the test environment
+    testEnvironment = get_test_environment()
+    scenario = testEnvironment["scenario"]
+    artist1 = testEnvironment["artist1"]
+    collector1 = testEnvironment["collector1"]
+    collector2 = testEnvironment["collector2"]
+    objkt = testEnvironment["objkt"]
+    marketplaceV1 = testEnvironment["marketplaceV1"]
+    marketplaceV3 = testEnvironment["marketplaceV3"]
+
+    # Mint an OBJKT
+    scenario += marketplaceV1.mint_OBJKT(
+        address=artist1.address,
+        amount=1,
+        metadata=sp.pack("ipfs://fff"),
+        royalties=100).run(sender=artist1)
+
+    scenario.verify(marketplaceV1.data.objkt_id == 153)
+
+    # Try to Swap the OBJKT but fail because artist is not admin?
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=152,
+        objkt_amount=1,
+        xtz_per_objkt=sp.mutez(10000),
+        royalties=100,
+        creator=artist1.address
+    ).run(
+        valid=True,
+        sender=artist1
+    )
