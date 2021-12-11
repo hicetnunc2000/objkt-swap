@@ -980,3 +980,97 @@ def test_swap_failure_conditions():
     scenario.verify(marketplaceV3.data.swaps.contains(1) == True)
     scenario.verify(marketplaceV3.data.swaps.contains(2) == False)
     scenario.verify(marketplaceV3.data.counter == 2)
+
+@sp.add_test(name="Test cancel v3 swap failure conditions")
+def test_cancel_swap_failure_conditions():
+    # Get the test environment
+    testEnvironment = get_test_environment()
+    scenario = testEnvironment["scenario"]
+    admin = testEnvironment["admin"]
+    artist1 = testEnvironment["artist1"]
+    artist2 = testEnvironment["artist2"]
+    collector1 = testEnvironment["collector1"]
+    collector2 = testEnvironment["collector2"]
+    objkt = testEnvironment["objkt"]
+    marketplaceV1 = testEnvironment["marketplaceV1"]
+    marketplaceV3 = testEnvironment["marketplaceV3"]
+
+    # Mint an OBJKT
+    scenario += marketplaceV1.mint_OBJKT(
+        address=artist1.address,
+        amount=1,
+        metadata=sp.pack("ipfs://fff"),
+        royalties=100
+    ).run(
+        sender=artist1
+    )
+
+    # Artist updates the objkt to be managed by marketplace v3
+    scenario += objkt.update_operators(
+        [sp.variant("add_operator", objkt.operator_param.make(
+            owner=artist1.address,
+            operator=marketplaceV3.address,
+            token_id=152))]).run(sender=artist1)
+
+    # Successfully swap
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=152,
+        objkt_amount=1,
+        xtz_per_objkt=sp.mutez(10000),
+        royalties=100,
+        creator=artist1.address
+    ).run(
+        sender=artist1,
+        valid=True
+    )
+
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
+
+    # try cancel nonexistent
+    scenario += marketplaceV3.cancel_swap(1535).run(
+        sender = artist1,
+        valid = False
+    )
+
+    # first one still exists
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
+
+    # try cancel someone elses
+    scenario += marketplaceV3.cancel_swap(0).run(
+        sender = artist2,
+        valid = False
+    )
+
+    # first one still exists
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
+
+    # try cancel someone elses as admin
+    scenario += marketplaceV3.cancel_swap(0).run(
+        sender = admin,
+        valid = False
+    )
+
+    # first one still exists
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
+
+    # cancel successfully
+    scenario += marketplaceV3.cancel_swap(0).run(
+        sender = artist1,
+        valid = True
+    )
+
+    # swap is gone
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+
+    # but id still incremented
+    scenario.verify(marketplaceV3.data.counter == 1)
