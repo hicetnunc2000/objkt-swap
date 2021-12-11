@@ -132,6 +132,7 @@ def test_swap_and_collect():
         xtz_per_objkt=sp.mutez(edition_price),
         royalties=royalties,
         creator=artist1.address).run(valid=False, sender=artist1, amount=sp.tez(3))
+
     scenario += marketplaceV3.swap(
         fa2=objkt.address,
         objkt_id=objkt_id,
@@ -654,15 +655,22 @@ def test_swap_failure_conditions():
     marketplaceV3 = testEnvironment["marketplaceV3"]
 
     # Mint an OBJKT
-    scenario += marketplaceV1.mint_OBJKT(
+    freshObjkt = marketplaceV1.mint_OBJKT(
         address=artist1.address,
         amount=1,
         metadata=sp.pack("ipfs://fff"),
-        royalties=100).run(sender=artist1)
+        royalties=100
+    ).run(
+        sender=artist1
+    )
+
+    # print(freshObjkt.__dict__)
+
+    scenario += freshObjkt
 
     scenario.verify(marketplaceV1.data.objkt_id == 153)
 
-    # Try to Swap the OBJKT but fail because artist is not admin?
+    # Try to Swap the OBJKT but fail because artist is not admin
     scenario += marketplaceV3.swap(
         fa2=objkt.address,
         objkt_id=152,
@@ -671,6 +679,70 @@ def test_swap_failure_conditions():
         royalties=100,
         creator=artist1.address
     ).run(
-        valid=True,
+        valid=False,
         sender=artist1
     )
+
+    # No swap was added
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
+    scenario.verify(marketplaceV3.data.counter == 0)
+
+    # Artist updates the objkt to be managed by marketplace v3
+    scenario += objkt.update_operators(
+        [sp.variant("add_operator", objkt.operator_param.make(
+            owner=artist1.address,
+            operator=marketplaceV3.address,
+            token_id=152))]).run(sender=artist1)
+
+    # trying to swap more editions than are available must fail
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=152,
+        objkt_amount=10,
+        xtz_per_objkt=sp.mutez(10000),
+        royalties=100,
+        creator=artist1.address
+    ).run(
+        sender=artist1,
+        valid=False
+    )
+
+    # No swap was added
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
+    scenario.verify(marketplaceV3.data.counter == 0)
+
+    # Successfully swap
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=152,
+        objkt_amount=1,
+        xtz_per_objkt=sp.mutez(10000),
+        royalties=100,
+        creator=artist1.address
+    ).run(
+        sender=artist1,
+        valid=True
+    )
+
+    # swap was added
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
+
+    # second swap should now fail because there is only 1 edition available
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=152,
+        objkt_amount=1,
+        xtz_per_objkt=sp.mutez(10000),
+        royalties=100,
+        creator=artist1.address
+    ).run(
+        sender=artist1,
+        valid=False
+    )
+
+    # no swap was added
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
