@@ -648,6 +648,7 @@ def test_swap_failure_conditions():
     testEnvironment = get_test_environment()
     scenario = testEnvironment["scenario"]
     artist1 = testEnvironment["artist1"]
+    artist2 = testEnvironment["artist2"]
     collector1 = testEnvironment["collector1"]
     collector2 = testEnvironment["collector2"]
     objkt = testEnvironment["objkt"]
@@ -746,3 +747,66 @@ def test_swap_failure_conditions():
     scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
     scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
     scenario.verify(marketplaceV3.data.counter == 1)
+
+    # Mint a multi edition from a second OBJKT
+    scenario += marketplaceV1.mint_OBJKT(
+        address=artist2.address,
+        amount=10,
+        metadata=sp.pack("ipfs://fff"),
+        royalties=100
+    ).run(
+        sender=artist2
+    )
+
+    # objkt was added
+    scenario.verify(marketplaceV1.data.objkt_id == 154)
+
+    # Artist 2 updates the new objkt to be managed by marketplace v3
+    scenario += objkt.update_operators(
+        [sp.variant("add_operator", objkt.operator_param.make(
+            owner=artist2.address,
+            operator=marketplaceV3.address,
+            token_id=153))]).run(sender=artist2)
+
+    # Fail to swap second objkt as second artist when royalty mismatch
+    #
+    # TODO this should fail because there is a royalty mismatch
+    # and no swap should be added in this instance
+    #
+    # scenario += marketplaceV3.swap(
+    #     fa2=objkt.address,
+    #     objkt_id=153,
+    #     objkt_amount=10,
+    #     xtz_per_objkt=sp.mutez(12000),
+    #     royalties=200,
+    #     creator=artist2.address
+    # ).run(
+    #     sender=artist2,
+    #     valid=False
+    # )
+    #
+    # # swap was not added
+    # scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    # scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    # scenario.verify(marketplaceV3.data.counter == 1)
+
+    # Successfully swap second objkt as artist
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=153,
+        objkt_amount=10,
+        xtz_per_objkt=sp.mutez(12000),
+        royalties=100,
+        creator=artist2.address
+    ).run(
+        sender=artist2,
+        valid=True
+    )
+
+    # swap was added
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(2) == False)
+    scenario.verify(marketplaceV3.data.counter == 2)
+
+    # try to collect own swap
