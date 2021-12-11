@@ -1062,7 +1062,7 @@ def test_cancel_swap_failure_conditions():
     scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
     scenario.verify(marketplaceV3.data.counter == 1)
 
-    # cancel successfully
+    # cancel own swap successfully
     scenario += marketplaceV3.cancel_swap(0).run(
         sender = artist1,
         valid = True
@@ -1073,4 +1073,129 @@ def test_cancel_swap_failure_conditions():
     scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
 
     # but id still incremented
+    scenario.verify(marketplaceV3.data.counter == 1)
+
+@sp.add_test(name="Test collect v3 swap failure conditions")
+def test_collect_swap_failure_conditions():
+    # Get the test environment
+    testEnvironment = get_test_environment()
+    scenario = testEnvironment["scenario"]
+    admin = testEnvironment["admin"]
+    artist1 = testEnvironment["artist1"]
+    artist2 = testEnvironment["artist2"]
+    collector1 = testEnvironment["collector1"]
+    collector2 = testEnvironment["collector2"]
+    objkt = testEnvironment["objkt"]
+    marketplaceV1 = testEnvironment["marketplaceV1"]
+    marketplaceV3 = testEnvironment["marketplaceV3"]
+
+    # Mint an OBJKT
+    scenario += marketplaceV1.mint_OBJKT(
+        address=artist1.address,
+        amount=1,
+        metadata=sp.pack("ipfs://fff"),
+        royalties=100
+    ).run(
+        sender=artist1
+    )
+
+    # Artist updates the objkt to be managed by marketplace v3
+    scenario += objkt.update_operators(
+        [sp.variant("add_operator", objkt.operator_param.make(
+            owner=artist1.address,
+            operator=marketplaceV3.address,
+            token_id=152))]).run(sender=artist1)
+
+    # Successfully swap
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=152,
+        objkt_amount=1,
+        xtz_per_objkt=sp.mutez(1),
+        royalties=100,
+        creator=artist1.address
+    ).run(
+        sender=artist1,
+        valid=True
+    )
+
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
+
+    # try to collect nonexistent swap and fail
+    scenario += marketplaceV3.collect(100).run(
+        sender = collector1,
+        amount = sp.mutez(1),
+        valid = False
+    )
+
+    # first one still exists
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
+
+    # try to collect own swap and fail
+    #
+    # TODO should not be able to collect own swap
+    #
+    # scenario += marketplaceV3.collect(0).run(
+    #     sender = artist1,
+    #     amount = sp.mutez(1),
+    #     valid = False
+    # )
+    #
+    # # first one still exists
+    # scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    # scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    # scenario.verify(marketplaceV3.data.counter == 1)
+
+    # this should fail because amount is wrong
+    scenario += marketplaceV3.collect(0).run(
+        sender = collector1,
+        amount = sp.mutez(100),
+        valid = False
+    )
+
+    # first one still exists
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
+
+    # this should pass
+    scenario += marketplaceV3.collect(0).run(
+        sender = collector1,
+        amount = sp.mutez(1),
+        valid = True
+    )
+
+    # swap should be gone now
+    #
+    # TODO the swap is still present even though it was successfully collected
+    # scenario.verify(marketplaceV3.data.counter == 1)
+    # scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
+    # scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+
+    # this should fail now
+    scenario += marketplaceV3.collect(0).run(
+        sender = collector1,
+        amount = sp.mutez(1),
+        valid = False
+    )
+
+    # TODO
+    #
+    # The original functionality removed swaps from the array if the amount
+    # of items available becomes 0
+    #
+    #
+    # This is the original code at the end of the collect call:
+    #
+    #   sp.if (self.data.swaps[params.swap_id].objkt_amount == 0):
+    #       del self.data.swaps[params.swap_id]
+    #
+    # Should we be unsetting once the amount available reaches 0
+    #
+    # scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
     scenario.verify(marketplaceV3.data.counter == 1)
