@@ -764,6 +764,19 @@ def test_swap_failure_conditions():
         valid=False
     )
 
+    # trying to swap someone elses objkt with unusual body must fail
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=152,
+        objkt_amount=1,
+        xtz_per_objkt=sp.mutez(10000),
+        royalties=100,
+        creator=artist2.address
+    ).run(
+        sender=artist2,
+        valid=False
+    )
+
     # No swap was added
     scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
     scenario.verify(marketplaceV3.data.counter == 0)
@@ -1119,7 +1132,13 @@ def test_collect_swap_failure_conditions():
         valid=True
     )
 
+    info = marketplaceV3.data.swaps(0)
+    print('--')
+    print(info.sender)
+    print('^^')
+
     scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    # scenario.verify(marketplaceV3.data.swaps(0).objkt_amount == 0)
     scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
     scenario.verify(marketplaceV3.data.counter == 1)
 
@@ -1172,9 +1191,9 @@ def test_collect_swap_failure_conditions():
     # swap should be gone now
     #
     # TODO the swap is still present even though it was successfully collected
-    # scenario.verify(marketplaceV3.data.counter == 1)
     # scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
-    # scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
 
     # this should fail now
     scenario += marketplaceV3.collect(0).run(
