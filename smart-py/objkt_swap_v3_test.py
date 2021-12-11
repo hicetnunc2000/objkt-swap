@@ -877,48 +877,40 @@ def test_swap_failure_conditions():
     # scenario.verify(marketplaceV3.data.counter == 1)
 
     # Fail to swap low royalties
-    #
-    # TODO this should fail because there are too few royalties
-    # and no swap should be added in this instance
-    #
-    # scenario += marketplaceV3.swap(
-    #     fa2=objkt.address,
-    #     objkt_id=153,
-    #     objkt_amount=10,
-    #     xtz_per_objkt=sp.mutez(12000),
-    #     royalties=5,
-    #     creator=artist2.address
-    # ).run(
-    #     sender=artist2,
-    #     valid=False
-    # )
-    #
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=153,
+        objkt_amount=10,
+        xtz_per_objkt=sp.mutez(12000),
+        royalties=5,
+        creator=artist2.address
+    ).run(
+        sender=artist2,
+        valid=False
+    )
+
     # # swap was not added
-    # scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
-    # scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
-    # scenario.verify(marketplaceV3.data.counter == 1)
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
 
     # Fail to swap zero royalties
-    #
-    # TODO this should fail because there are no royalties
-    # and no swap should be added in this instance
-    #
-    # scenario += marketplaceV3.swap(
-    #     fa2=objkt.address,
-    #     objkt_id=153,
-    #     objkt_amount=10,
-    #     xtz_per_objkt=sp.mutez(12000),
-    #     royalties=0,
-    #     creator=artist2.address
-    # ).run(
-    #     sender=artist2,
-    #     valid=False
-    # )
-    #
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=153,
+        objkt_amount=10,
+        xtz_per_objkt=sp.mutez(12000),
+        royalties=0,
+        creator=artist2.address
+    ).run(
+        sender=artist2,
+        valid=False
+    )
+
     # # swap was not added
-    # scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
-    # scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
-    # scenario.verify(marketplaceV3.data.counter == 1)
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    scenario.verify(marketplaceV3.data.counter == 1)
 
     # Fail to swap second objkt as second artist when too many editions
     scenario += marketplaceV3.swap(
