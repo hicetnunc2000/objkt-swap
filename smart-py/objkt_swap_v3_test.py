@@ -610,7 +610,6 @@ def test_mint_failure_conditions():
     scenario.verify(marketplaceV1.data.objkt_id == 152)
 
     # try to mint an objkt with too few royalties
-    #
     # TODO should fail but passes currently
     # scenario += marketplaceV1.mint_OBJKT(
     #     address = artist1.address,
@@ -691,10 +690,6 @@ def test_swap_failure_conditions():
     ).run(
         sender=artist1
     )
-
-    # print(freshObjkt.__dict__)
-
-    # scenario += freshObjkt
 
     scenario.verify(marketplaceV1.data.objkt_id == 153)
 
@@ -857,6 +852,50 @@ def test_swap_failure_conditions():
     #     objkt_amount=10,
     #     xtz_per_objkt=sp.mutez(12000),
     #     royalties=200,
+    #     creator=artist2.address
+    # ).run(
+    #     sender=artist2,
+    #     valid=False
+    # )
+    #
+    # # swap was not added
+    # scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    # scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    # scenario.verify(marketplaceV3.data.counter == 1)
+
+    # Fail to swap low royalties
+    #
+    # TODO this should fail because there are too few royalties
+    # and no swap should be added in this instance
+    #
+    # scenario += marketplaceV3.swap(
+    #     fa2=objkt.address,
+    #     objkt_id=153,
+    #     objkt_amount=10,
+    #     xtz_per_objkt=sp.mutez(12000),
+    #     royalties=5,
+    #     creator=artist2.address
+    # ).run(
+    #     sender=artist2,
+    #     valid=False
+    # )
+    #
+    # # swap was not added
+    # scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    # scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
+    # scenario.verify(marketplaceV3.data.counter == 1)
+
+    # Fail to swap zero royalties
+    #
+    # TODO this should fail because there are no royalties
+    # and no swap should be added in this instance
+    #
+    # scenario += marketplaceV3.swap(
+    #     fa2=objkt.address,
+    #     objkt_id=153,
+    #     objkt_amount=10,
+    #     xtz_per_objkt=sp.mutez(12000),
+    #     royalties=0,
     #     creator=artist2.address
     # ).run(
     #     sender=artist2,
