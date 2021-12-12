@@ -717,6 +717,63 @@ def test_swap_failure_conditions():
             operator=marketplaceV3.address,
             token_id=152))]).run(sender=artist1)
 
+    # Try to Swap the OBJKT as someone else with a different creator must fail
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=152,
+        objkt_amount=1,
+        xtz_per_objkt=sp.mutez(10000),
+        royalties=100,
+        creator=artist2.address
+    ).run(
+        valid=False,
+        sender=artist2
+    )
+
+    # No swap was added
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
+    scenario.verify(marketplaceV3.data.counter == 0)
+
+    # Try to Swap the OBJKT as someone else with the same creator must fail
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=152,
+        objkt_amount=1,
+        xtz_per_objkt=sp.mutez(10000),
+        royalties=100,
+        creator=artist1.address
+    ).run(
+        valid=False,
+        sender=artist2
+    )
+
+    # No swap was added
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
+    scenario.verify(marketplaceV3.data.counter == 0)
+
+    # Try to Swap the OBJKT as the artist with a different creator must fail
+    #
+    # TODO a holder can swap a piece with a different creator, how to verify
+    # the creator is the true creator?
+    #
+    # Possible royalty redirection attack vector
+    #
+    # scenario += marketplaceV3.swap(
+    #     fa2=objkt.address,
+    #     objkt_id=152,
+    #     objkt_amount=1,
+    #     xtz_per_objkt=sp.mutez(10000),
+    #     royalties=100,
+    #     creator=artist2.address
+    # ).run(
+    #     valid=False,
+    #     sender=artist1
+    # )
+    #
+    # # No swap was added
+    # scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
+    # scenario.verify(marketplaceV3.data.counter == 0)
+
     # trying to swap more editions than are available must fail
     scenario += marketplaceV3.swap(
         fa2=objkt.address,
