@@ -145,6 +145,9 @@ def test_swap_and_collect():
     scenario.verify(marketplaceV3.data.swaps[0].royalties == royalties)
     scenario.verify(marketplaceV3.data.swaps[0].creator == artist1.address)
 
+    # Check that collecting fails if the collector is the swap issuer
+    scenario += marketplaceV3.collect(0).run(valid=False, sender=artist1, amount=sp.mutez(edition_price))
+
     # Check that collecting fails if the exact tez amount is not provided
     scenario += marketplaceV3.collect(0).run(valid=False, sender=collector1, amount=sp.mutez(edition_price - 1))
     scenario += marketplaceV3.collect(0).run(valid=False, sender=collector1, amount=sp.mutez(edition_price + 1))
@@ -454,8 +457,8 @@ def test_add_and_remove_fa2():
     scenario.verify(newobjkt.data.ledger[(collector1.address, objkt_id)].balance == 1)
 
 
-@sp.add_test(name="Test pause contract")
-def test_pause_contract():
+@sp.add_test(name="Test pause swaps")
+def test_pause_swaps():
     # Get the test environment
     testEnvironment = get_test_environment()
     scenario = testEnvironment["scenario"]
@@ -497,15 +500,16 @@ def test_pause_contract():
     # Collect the OBJKT
     scenario += marketplaceV3.collect(0).run(sender=collector1, amount=sp.mutez(edition_price))
 
-    # Pause the contract
-    scenario += marketplaceV3.set_pause(True).run(valid=False, sender=collector1)
-    scenario += marketplaceV3.set_pause(True).run(valid=False, sender=admin, amount=sp.tez(3))
-    scenario += marketplaceV3.set_pause(True).run(sender=admin)
+    # Pause the swaps
+    scenario += marketplaceV3.pause_swaps(True).run(valid=False, sender=collector1)
+    scenario += marketplaceV3.pause_swaps(True).run(valid=False, sender=admin, amount=sp.tez(3))
+    scenario += marketplaceV3.pause_swaps(True).run(sender=admin)
 
-    # Check that the contract is paused
-    scenario.verify(marketplaceV3.data.paused)
+    # Check that only the swaps are paused
+    scenario.verify(marketplaceV3.data.swaps_paused)
+    scenario.verify(~marketplaceV3.data.collects_paused)
 
-    # Check that swapping and collecting is not allowed
+    # Check that swapping is not allowed
     scenario += marketplaceV3.swap(
         fa2=objkt.address,
         objkt_id=objkt_id,
@@ -513,13 +517,15 @@ def test_pause_contract():
         xtz_per_objkt=sp.mutez(edition_price),
         royalties=royalties,
         creator=artist1.address).run(valid=False, sender=artist1)
-    scenario += marketplaceV3.collect(0).run(valid=False, sender=collector1, amount=sp.mutez(edition_price))
+
+    # Check that collecting is still allowed
+    scenario += marketplaceV3.collect(0).run(sender=collector1, amount=sp.mutez(edition_price))
 
     # Check that cancel swaps are still allowed
     scenario += marketplaceV3.cancel_swap(0).run(sender=artist1)
 
-    # Unpause the contract again
-    scenario += marketplaceV3.set_pause(False).run(sender=admin)
+    # Unpause the swaps again
+    scenario += marketplaceV3.pause_swaps(False).run(sender=admin)
 
     # Check that swapping and collecting is possible again
     scenario += marketplaceV3.swap(
@@ -531,3 +537,85 @@ def test_pause_contract():
         creator=artist1.address).run(sender=artist1)
     scenario += marketplaceV3.collect(1).run(sender=collector1, amount=sp.mutez(edition_price))
     scenario += marketplaceV3.cancel_swap(1).run(sender=artist1)
+
+
+@sp.add_test(name="Test pause collects")
+def test_pause_collects():
+    # Get the test environment
+    testEnvironment = get_test_environment()
+    scenario = testEnvironment["scenario"]
+    admin = testEnvironment["admin"]
+    artist1 = testEnvironment["artist1"]
+    collector1 = testEnvironment["collector1"]
+    objkt = testEnvironment["objkt"]
+    marketplaceV1 = testEnvironment["marketplaceV1"]
+    marketplaceV3 = testEnvironment["marketplaceV3"]
+
+    # Mint an OBJKT
+    editions = 100
+    scenario += marketplaceV1.mint_OBJKT(
+        address=artist1.address,
+        amount=editions,
+        metadata=sp.pack("ipfs://fff"),
+        royalties=100).run(sender=artist1)
+
+    # Add the marketplace contract as an operator to be able to swap it
+    objkt_id = 152
+    scenario += objkt.update_operators(
+        [sp.variant("add_operator", objkt.operator_param.make(
+            owner=artist1.address,
+            operator=marketplaceV3.address,
+            token_id=objkt_id))]).run(sender=artist1)
+
+    # Swap one OBJKT in the marketplace v3 contract
+    swapped_editions = 10
+    edition_price = 1000000
+    royalties = 100
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=objkt_id,
+        objkt_amount=swapped_editions,
+        xtz_per_objkt=sp.mutez(edition_price),
+        royalties=royalties,
+        creator=artist1.address).run(sender=artist1)
+
+    # Collect the OBJKT
+    scenario += marketplaceV3.collect(0).run(sender=collector1, amount=sp.mutez(edition_price))
+
+    # Pause the collects
+    scenario += marketplaceV3.pause_collects(True).run(valid=False, sender=collector1)
+    scenario += marketplaceV3.pause_collects(True).run(valid=False, sender=admin, amount=sp.tez(3))
+    scenario += marketplaceV3.pause_collects(True).run(sender=admin)
+
+    # Check that only the collects are paused
+    scenario.verify(~marketplaceV3.data.swaps_paused)
+    scenario.verify(marketplaceV3.data.collects_paused)
+
+    # Check that collecting is not allowed
+    scenario += marketplaceV3.collect(0).run(valid=False, sender=collector1, amount=sp.mutez(edition_price))
+
+    # Check that swapping is still allowed
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=objkt_id,
+        objkt_amount=swapped_editions,
+        xtz_per_objkt=sp.mutez(edition_price),
+        royalties=royalties,
+        creator=artist1.address).run(sender=artist1)
+
+    # Check that cancel swaps are still allowed
+    scenario += marketplaceV3.cancel_swap(0).run(sender=artist1)
+
+    # Unpause the collects again
+    scenario += marketplaceV3.pause_collects(False).run(sender=admin)
+
+    # Check that swapping and collecting is possible again
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=objkt_id,
+        objkt_amount=swapped_editions,
+        xtz_per_objkt=sp.mutez(edition_price),
+        royalties=royalties,
+        creator=artist1.address).run(sender=artist1)
+    scenario += marketplaceV3.collect(2).run(sender=collector1, amount=sp.mutez(edition_price))
+    scenario += marketplaceV3.cancel_swap(2).run(sender=artist1)
