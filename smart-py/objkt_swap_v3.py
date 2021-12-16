@@ -38,11 +38,11 @@ class Marketplace(sp.Contract):
         # Define the contract storage data types for clarity
         self.init_type(sp.TRecord(
             manager=sp.TAddress,
-            fee_recipient=sp.TAddress,
             metadata=sp.TBigMap(sp.TString, sp.TBytes),
             allowed_fa2s=sp.TBigMap(sp.TAddress, sp.TBool),
             swaps=sp.TBigMap(sp.TNat, Marketplace.SWAP_TYPE),
             fee=sp.TNat,
+            fee_recipient=sp.TAddress,
             counter=sp.TNat,
             swaps_paused=sp.TBool,
             collects_paused=sp.TBool))
@@ -50,11 +50,11 @@ class Marketplace(sp.Contract):
         # Initialize the contract storage
         self.init(
             manager=manager,
-            fee_recipient=manager,
             metadata=metadata,
             allowed_fa2s=allowed_fa2s,
             swaps=sp.big_map(),
             fee=fee,
+            fee_recipient=manager,
             counter=0,
             swaps_paused=False,
             collects_paused=False)
@@ -343,6 +343,65 @@ class Marketplace(sp.Contract):
 
         # Pause or unpause the collects
         self.data.collects_paused = pause
+
+    @sp.onchain_view()
+    def get_manager(self):
+        """Returns the marketplace manager address.
+
+        """
+        sp.result(self.data.manager)
+
+    @sp.onchain_view()
+    def is_allowed_fa2(self, fa2):
+        """Checks if a given FA2 token contract can be traded in the
+        marketplace.
+
+        """
+        # Define the input parameter data type
+        sp.set_type(fa2, sp.TAddress)
+
+        # Return if it can be traded or not
+        sp.result(self.data.allowed_fa2s.get(fa2, default_value=False))
+
+    @sp.onchain_view()
+    def has_swap(self, swap_id):
+        """Check if a given swap id is present in the swaps big map.
+
+        """
+        # Define the input parameter data type
+        sp.set_type(swap_id, sp.TNat)
+
+        # Return True if the swap id is present in the swaps big map
+        sp.result(self.data.swaps.contains(swap_id))
+
+    @sp.onchain_view()
+    def get_swap(self, swap_id):
+        """Returns the complete information from a given swap id.
+
+        """
+        # Define the input parameter data type
+        sp.set_type(swap_id, sp.TNat)
+
+        # Check that the swap id is present in the swaps big map
+        sp.verify(self.data.swaps.contains(swap_id),
+                  message="The provided swap_id doesn't exist")
+
+        # Return the swap information
+        sp.result(self.data.swaps[swap_id])
+
+    @sp.onchain_view()
+    def get_fee(self):
+        """Returns the marketplace fee.
+
+        """
+        sp.result(self.data.fee)
+
+    @sp.onchain_view()
+    def get_fee_recipient(self):
+        """Returns the marketplace fee recipient address.
+
+        """
+        sp.result(self.data.fee_recipient)
 
     def fa2_transfer(self, fa2, from_, to_, token_id, token_amount):
         """Transfers a number of editions of a FA2 token between two addresses.

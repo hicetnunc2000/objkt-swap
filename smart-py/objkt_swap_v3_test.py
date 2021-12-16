@@ -112,6 +112,10 @@ def test_swap_and_collect():
             operator=marketplaceV3.address,
             token_id=objkt_id))]).run(sender=artist1)
 
+    # Check that there is are no swaps before
+    scenario.verify(~marketplaceV3.data.swaps.contains(0))
+    scenario.verify(~marketplaceV3.has_swap(0))
+
     # Swap one OBJKT in the marketplace v3 contract
     swapped_editions = 50
     edition_price = 1000000
@@ -145,6 +149,16 @@ def test_swap_and_collect():
     scenario.verify(marketplaceV3.data.swaps[0].royalties == royalties)
     scenario.verify(marketplaceV3.data.swaps[0].creator == artist1.address)
 
+    # Check that the on-chain views work
+    scenario.verify(marketplaceV3.has_swap(0))
+    scenario.verify(marketplaceV3.get_swap(0).issuer == artist1.address)
+    scenario.verify(marketplaceV3.get_swap(0).fa2 == objkt.address)
+    scenario.verify(marketplaceV3.get_swap(0).objkt_id == objkt_id)
+    scenario.verify(marketplaceV3.get_swap(0).objkt_amount == swapped_editions)
+    scenario.verify(marketplaceV3.get_swap(0).xtz_per_objkt == sp.mutez(edition_price))
+    scenario.verify(marketplaceV3.get_swap(0).royalties == royalties)
+    scenario.verify(marketplaceV3.get_swap(0).creator == artist1.address)
+
     # Check that collecting fails if the collector is the swap issuer
     scenario += marketplaceV3.collect(0).run(valid=False, sender=artist1, amount=sp.mutez(edition_price))
 
@@ -159,6 +173,7 @@ def test_swap_and_collect():
     # Check that all the tez have been sent and the swaps big map has been updated
     scenario.verify(marketplaceV3.balance == sp.mutez(0))
     scenario.verify(marketplaceV3.data.swaps[0].objkt_amount == swapped_editions - 2)
+    scenario.verify(marketplaceV3.get_swap(0).objkt_amount == swapped_editions - 2)
 
     # Check that the OBJKT ledger information is correct
     scenario.verify(objkt.data.ledger[(artist1.address, objkt_id)].balance == editions - swapped_editions)
@@ -179,6 +194,7 @@ def test_swap_and_collect():
 
     # Check that the swaps big map has been updated
     scenario.verify(~marketplaceV3.data.swaps.contains(0))
+    scenario.verify(~marketplaceV3.has_swap(0))
 
     # Check that the swap cannot be cancelled twice
     scenario += marketplaceV3.cancel_swap(0).run(valid=False, sender=artist1)
@@ -297,6 +313,10 @@ def test_update_fee():
     artist1 = testEnvironment["artist1"]
     marketplaceV3 = testEnvironment["marketplaceV3"]
 
+    # Check the original fee
+    scenario.verify(marketplaceV3.data.fee == 25)
+    scenario.verify(marketplaceV3.get_fee() == 25)
+
     # Check that only the admin can update the fees
     new_fee = 100
     scenario += marketplaceV3.update_fee(new_fee).run(valid=False, sender=artist1)
@@ -305,6 +325,7 @@ def test_update_fee():
 
     # Check that the fee is updated
     scenario.verify(marketplaceV3.data.fee == new_fee)
+    scenario.verify(marketplaceV3.get_fee() == new_fee)
 
     # Check that if fails if we try to set a fee that its too high
     new_fee = 1000
@@ -320,6 +341,10 @@ def test_update_fee_recipient():
     artist1 = testEnvironment["artist1"]
     marketplaceV3 = testEnvironment["marketplaceV3"]
 
+    # Check the original fee recipient
+    scenario.verify(marketplaceV3.data.fee_recipient == admin.address)
+    scenario.verify(marketplaceV3.get_fee_recipient() == admin.address)
+
     # Check that only the admin can update the fee recipient
     new_fee_recipient = artist1.address
     scenario += marketplaceV3.update_fee_recipient(new_fee_recipient).run(valid=False, sender=artist1)
@@ -328,6 +353,7 @@ def test_update_fee_recipient():
 
     # Check that the fee recipient is updated
     scenario.verify(marketplaceV3.data.fee_recipient == new_fee_recipient)
+    scenario.verify(marketplaceV3.get_fee_recipient() == new_fee_recipient)
 
 
 @sp.add_test(name="Test update manager")
@@ -339,6 +365,10 @@ def test_update_manager():
     artist1 = testEnvironment["artist1"]
     artist2 = testEnvironment["artist2"]
     marketplaceV3 = testEnvironment["marketplaceV3"]
+
+    # Check the original manager
+    scenario.verify(marketplaceV3.data.manager == admin.address)
+    scenario.verify(marketplaceV3.get_manager() == admin.address)
 
     # Check that only the admin can update the manager
     new_manager = artist1.address
@@ -356,6 +386,7 @@ def test_update_manager():
 
     # Check that the manager is updated
     scenario.verify(marketplaceV3.data.manager == new_manager)
+    scenario.verify(marketplaceV3.get_manager() == new_manager)
 
 
 @sp.add_test(name="Test add and remove fa2")
@@ -398,6 +429,10 @@ def test_add_and_remove_fa2():
         royalties=royalties,
         creator=artist1.address).run(valid=False, sender=artist1)
 
+    # Check the view mode
+    scenario.verify(marketplaceV3.is_allowed_fa2(objkt.address))
+    scenario.verify(~marketplaceV3.is_allowed_fa2(newobjkt.address))
+
     # Check that only the admin can update the fa2 list
     new_fa2 = newobjkt.address
     scenario += marketplaceV3.add_fa2(new_fa2).run(valid=False, sender=artist1)
@@ -407,6 +442,8 @@ def test_add_and_remove_fa2():
     # Check that the new FA2 token is now part of the allowed FA2 contracts
     scenario.verify(marketplaceV3.data.allowed_fa2s[objkt.address])
     scenario.verify(marketplaceV3.data.allowed_fa2s[new_fa2])
+    scenario.verify(marketplaceV3.is_allowed_fa2(objkt.address))
+    scenario.verify(marketplaceV3.is_allowed_fa2(new_fa2))
 
     # Check that now is possible to swap the newOBJKT
     scenario += marketplaceV3.swap(
@@ -439,6 +476,8 @@ def test_add_and_remove_fa2():
     # Check that now is not allowed to trade newOBJKT tokens
     scenario.verify(marketplaceV3.data.allowed_fa2s[objkt.address])
     scenario.verify(~marketplaceV3.data.allowed_fa2s[newobjkt.address])
+    scenario.verify(marketplaceV3.is_allowed_fa2(objkt.address))
+    scenario.verify(~marketplaceV3.is_allowed_fa2(newobjkt.address))
     scenario += marketplaceV3.swap(
         fa2=newobjkt.address,
         objkt_id=objkt_id,
