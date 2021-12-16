@@ -277,6 +277,25 @@ class Marketplace(sp.Contract):
         self.data.manager = new_manager
 
     @sp.entry_point
+    def update_metadata(self, params):
+        """Updates the contract metadata.
+
+        """
+        # Define the input parameter data type
+        sp.set_type(params, sp.TRecord(
+            key=sp.TString,
+            value=sp.TBytes).layout(("key", "value")))
+
+        # Check that the manager executed the entry point
+        self.check_is_manager()
+
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
+
+        # Update the contract metadata
+        self.data.metadata[params.key] = params.value
+
+    @sp.entry_point
     def add_fa2(self, fa2):
         """Adds a new FA2 token address to the list of tradable tokens.
 

@@ -389,6 +389,33 @@ def test_update_manager():
     scenario.verify(marketplaceV3.get_manager() == new_manager)
 
 
+@sp.add_test(name="Test update metadata")
+def test_update_metadata():
+    # Get the test environment
+    testEnvironment = get_test_environment()
+    scenario = testEnvironment["scenario"]
+    admin = testEnvironment["admin"]
+    artist1 = testEnvironment["artist1"]
+    marketplaceV3 = testEnvironment["marketplaceV3"]
+
+    # Check that only the admin can update the metadata
+    new_metadata = sp.record(key="", value=sp.pack("ipfs://zzzz"))
+    scenario += marketplaceV3.update_metadata(new_metadata).run(valid=False, sender=artist1)
+    scenario += marketplaceV3.update_metadata(new_metadata).run(valid=False, sender=admin, amount=sp.tez(3))
+    scenario += marketplaceV3.update_metadata(new_metadata).run(sender=admin)
+
+    # Check that the metadata is updated
+    scenario.verify(marketplaceV3.data.metadata[new_metadata.key] == new_metadata.value)
+
+    # Add some extra metadata
+    extra_metadata = sp.record(key="aaa", value=sp.pack("ipfs://ffff"))
+    scenario += marketplaceV3.update_metadata(extra_metadata).run(sender=admin)
+
+    # Check that the two metadata entries are present
+    scenario.verify(marketplaceV3.data.metadata[new_metadata.key] == new_metadata.value)
+    scenario.verify(marketplaceV3.data.metadata[extra_metadata.key] == extra_metadata.value)
+
+
 @sp.add_test(name="Test add and remove fa2")
 def test_add_and_remove_fa2():
     # Get the test environment
