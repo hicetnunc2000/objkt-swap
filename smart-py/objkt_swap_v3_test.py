@@ -115,6 +115,7 @@ def test_swap_and_collect():
     # Check that there is are no swaps before
     scenario.verify(~marketplaceV3.data.swaps.contains(0))
     scenario.verify(~marketplaceV3.has_swap(0))
+    scenario.verify(marketplaceV3.get_swaps_counter() == 0)
 
     # Swap one OBJKT in the marketplace v3 contract
     swapped_editions = 50
@@ -158,6 +159,7 @@ def test_swap_and_collect():
     scenario.verify(marketplaceV3.get_swap(0).xtz_per_objkt == sp.mutez(edition_price))
     scenario.verify(marketplaceV3.get_swap(0).royalties == royalties)
     scenario.verify(marketplaceV3.get_swap(0).creator == artist1.address)
+    scenario.verify(marketplaceV3.get_swaps_counter() == 1)
 
     # Check that collecting fails if the collector is the swap issuer
     scenario += marketplaceV3.collect(0).run(valid=False, sender=artist1, amount=sp.mutez(edition_price))
@@ -195,6 +197,7 @@ def test_swap_and_collect():
     # Check that the swaps big map has been updated
     scenario.verify(~marketplaceV3.data.swaps.contains(0))
     scenario.verify(~marketplaceV3.has_swap(0))
+    scenario.verify(marketplaceV3.get_swaps_counter() == 1)
 
     # Check that the swap cannot be cancelled twice
     scenario += marketplaceV3.cancel_swap(0).run(valid=False, sender=artist1)
@@ -387,6 +390,49 @@ def test_update_manager():
     # Check that the manager is updated
     scenario.verify(marketplaceV3.data.manager == new_manager)
     scenario.verify(marketplaceV3.get_manager() == new_manager)
+
+
+@sp.add_test(name="Test transfer and accept manager")
+def test_transfer_and_accept_manager():
+    # Get the test environment
+    testEnvironment = get_test_environment()
+    scenario = testEnvironment["scenario"]
+    admin = testEnvironment["admin"]
+    artist1 = testEnvironment["artist1"]
+    artist2 = testEnvironment["artist2"]
+    marketplaceV3 = testEnvironment["marketplaceV3"]
+
+    # Check the original manager
+    scenario.verify(marketplaceV3.data.manager == admin.address)
+    scenario.verify(marketplaceV3.get_manager() == admin.address)
+
+    # Check that only the admin can transfer the manager
+    new_manager = artist1.address
+    scenario += marketplaceV3.transfer_manager(new_manager).run(valid=False, sender=artist1)
+    scenario += marketplaceV3.transfer_manager(new_manager).run(valid=False, sender=admin, amount=sp.tez(3))
+    scenario += marketplaceV3.transfer_manager(new_manager).run(sender=admin)
+
+    # Check that the proposed manager is updated
+    scenario.verify(marketplaceV3.data.proposed_manager.open_some() == new_manager)
+
+    # Check that only the proposed manager can accept the manager
+    new_manager = artist1.address
+    scenario += marketplaceV3.accept_manager().run(valid=False, sender=admin)
+    scenario += marketplaceV3.accept_manager().run(valid=False, sender=artist1, amount=sp.tez(3))
+    scenario += marketplaceV3.accept_manager().run(sender=artist1)
+    
+    # Check that the manager is updated
+    scenario.verify(marketplaceV3.data.manager == new_manager)
+    scenario.verify(marketplaceV3.get_manager() == new_manager)
+    scenario.verify(~marketplaceV3.data.proposed_manager.is_some())
+
+    # Check that only the new manager can propose a new manager
+    new_manager = artist2.address
+    scenario += marketplaceV3.transfer_manager(new_manager).run(valid=False, sender=admin)
+    scenario += marketplaceV3.transfer_manager(new_manager).run(sender=artist1)
+
+    # Check that the proposed manager is updated
+    scenario.verify(marketplaceV3.data.proposed_manager.open_some() == new_manager)
 
 
 @sp.add_test(name="Test update metadata")
