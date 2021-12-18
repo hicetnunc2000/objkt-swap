@@ -124,6 +124,7 @@ def test_swap_and_collect():
     # Check that there is are no swaps before
     scenario.verify(~marketplaceV3.data.swaps.contains(0))
     scenario.verify(~marketplaceV3.has_swap(0))
+    scenario.verify(marketplaceV3.data.counter == 0)
 
     # Swap one OBJKT in the marketplace v3 contract
     swapped_editions = 50
@@ -148,6 +149,7 @@ def test_swap_and_collect():
     # Check that the OBJKT ledger information is correct
     scenario.verify(objkt.data.ledger[(artist1.address, objkt_id)].balance == editions - swapped_editions)
     scenario.verify(objkt.data.ledger[(marketplaceV3.address, objkt_id)].balance == swapped_editions)
+    scenario.verify(marketplaceV3.data.counter == 1)
 
     # Check that the swaps big map is correct
     scenario.verify(marketplaceV3.data.swaps.contains(0))
@@ -248,6 +250,9 @@ def test_free_collect():
         xtz_per_objkt=sp.mutez(edition_price),
         royalties=royalties,
         creator=artist1.address).run(sender=artist1)
+
+    # Correct amount
+    scenario.verify(marketplaceV3.data.swaps[0].objkt_amount == swapped_editions)
 
     # Collect the OBJKT
     scenario += marketplaceV3.collect(0).run(sender=collector1, amount=sp.mutez(edition_price))
@@ -716,17 +721,11 @@ def test_mint_failure_conditions():
 
 @sp.add_test(name="Test swap v3 failure conditions")
 def test_swap_failure_conditions():
-# =======
-
-# @sp.add_test(name="Test pause collects")
-# def test_pause_collects():
-# >>>>>>> f20378f3913e3a8a6741f80f03d34436f20591ab
     # Get the test environment
     testEnvironment = get_test_environment()
     scenario = testEnvironment["scenario"]
     admin = testEnvironment["admin"]
     artist1 = testEnvironment["artist1"]
-# <<<<<<< HEAD
     artist2 = testEnvironment["artist2"]
     collector1 = testEnvironment["collector1"]
     collector2 = testEnvironment["collector2"]
@@ -1132,15 +1131,11 @@ def test_cancel_swap_failure_conditions():
     artist2 = testEnvironment["artist2"]
     collector1 = testEnvironment["collector1"]
     collector2 = testEnvironment["collector2"]
-# =======
-    # collector1 = testEnvironment["collector1"]
-# >>>>>>> f20378f3913e3a8a6741f80f03d34436f20591ab
     objkt = testEnvironment["objkt"]
     marketplaceV1 = testEnvironment["marketplaceV1"]
     marketplaceV3 = testEnvironment["marketplaceV3"]
 
     # Mint an OBJKT
-# <<<<<<< HEAD
     scenario += marketplaceV1.mint_OBJKT(
         address=artist1.address,
         amount=1,
@@ -1274,7 +1269,7 @@ def test_collect_swap_failure_conditions():
     )
 
     scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
-    scenario.verify(marketplaceV3.data.swaps.get(0).objkt_amount == 1)
+    scenario.verify(marketplaceV3.data.swaps[0].objkt_amount == 1)
     scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
     scenario.verify(marketplaceV3.data.counter == 1)
 
@@ -1287,23 +1282,19 @@ def test_collect_swap_failure_conditions():
 
     # first one still exists
     scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps[0].objkt_amount == 1)
     scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
     scenario.verify(marketplaceV3.data.counter == 1)
 
     # try to collect own swap and fail
-    #
-    # TODO should not be able to collect own swap
-    #
     scenario += marketplaceV3.collect(0).run(
         sender = artist1,
         amount = sp.mutez(1),
         valid = False
     )
-    #
+
     # # first one still exists
-    # scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
-    # scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
-    # scenario.verify(marketplaceV3.data.counter == 1)
+    scenario.verify(marketplaceV3.data.swaps.get(0).objkt_amount == 1)
 
     # this should fail because amount is wrong
     scenario += marketplaceV3.collect(0).run(
@@ -1314,6 +1305,7 @@ def test_collect_swap_failure_conditions():
 
     # first one still exists
     scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.get(0).objkt_amount == 1)
     scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
     scenario.verify(marketplaceV3.data.counter == 1)
 
@@ -1324,10 +1316,10 @@ def test_collect_swap_failure_conditions():
         valid = True
     )
 
-    # swap should be gone now
-    #
-    # TODO the swap is still present even though it was successfully collected
-    # scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
+    # swap entry still exists
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    # except there are no copies left
+    scenario.verify(marketplaceV3.data.swaps.get(0).objkt_amount == 0)
     scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
     scenario.verify(marketplaceV3.data.counter == 1)
 
@@ -1338,20 +1330,9 @@ def test_collect_swap_failure_conditions():
         valid = False
     )
 
-    # TODO
-    #
-    # The original functionality removed swaps from the array if the amount
-    # of items available becomes 0
-    #
-    #
-    # This is the original code at the end of the collect call:
-    #
-    #   sp.if (self.data.swaps[params.swap_id].objkt_amount == 0):
-    #       del self.data.swaps[params.swap_id]
-    #
-    # Should we be unsetting once the amount available reaches 0
-    #
-    # scenario.verify(marketplaceV3.data.swaps.contains(0) == False)
+    # swap hasn't changed
+    scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
+    scenario.verify(marketplaceV3.data.swaps.get(0).objkt_amount == 0)
     scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
     scenario.verify(marketplaceV3.data.counter == 1)
 
