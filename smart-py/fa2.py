@@ -653,4 +653,3 @@ class View_consumer(sp.Contract):
             self.data.operator_support = True
         sp.else:
             self.data.operator_support = False
-
