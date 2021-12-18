@@ -126,10 +126,20 @@ def test_swap_and_collect():
     scenario.verify(~marketplaceV3.has_swap(0))
     scenario.verify(marketplaceV3.data.counter == 0)
 
-    # Swap one OBJKT in the marketplace v3 contract
     swapped_editions = 50
     edition_price = 1000000
     royalties = 100
+
+    # Swap more than exist and fail
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=objkt_id,
+        objkt_amount=editions + 1,
+        xtz_per_objkt=sp.mutez(edition_price),
+        royalties=royalties,
+        creator=artist1.address).run(valid=False, sender=artist1)
+
+    # No tez allowed
     scenario += marketplaceV3.swap(
         fa2=objkt.address,
         objkt_id=objkt_id,
@@ -138,6 +148,7 @@ def test_swap_and_collect():
         royalties=royalties,
         creator=artist1.address).run(valid=False, sender=artist1, amount=sp.tez(3))
 
+    # Swap one OBJKT in the marketplace v3 contract
     scenario += marketplaceV3.swap(
         fa2=objkt.address,
         objkt_id=objkt_id,
@@ -1334,6 +1345,19 @@ def test_collect_swap_failure_conditions():
             operator=marketplaceV3.address,
             token_id=152))]).run(sender=artist1)
 
+    # Fail to swap someone elses
+    scenario += marketplaceV3.swap(
+        fa2=objkt.address,
+        objkt_id=152,
+        objkt_amount=1,
+        xtz_per_objkt=sp.mutez(1),
+        royalties=100,
+        creator=artist1.address
+    ).run(
+        sender=admin,
+        valid=False
+    )
+
     # Successfully swap
     scenario += marketplaceV3.swap(
         fa2=objkt.address,
@@ -1373,7 +1397,7 @@ def test_collect_swap_failure_conditions():
     )
 
     # # first one still exists
-    scenario.verify(marketplaceV3.data.swaps.get(0).objkt_amount == 1)
+    scenario.verify(marketplaceV3.data.swaps[0].objkt_amount == 1)
 
     # this should fail because amount is wrong
     scenario += marketplaceV3.collect(0).run(
@@ -1384,7 +1408,7 @@ def test_collect_swap_failure_conditions():
 
     # first one still exists
     scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
-    scenario.verify(marketplaceV3.data.swaps.get(0).objkt_amount == 1)
+    scenario.verify(marketplaceV3.data.swaps[0].objkt_amount == 1)
     scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
     scenario.verify(marketplaceV3.data.counter == 1)
 
@@ -1398,7 +1422,7 @@ def test_collect_swap_failure_conditions():
     # swap entry still exists
     scenario.verify(marketplaceV3.data.swaps.contains(0) == True)
     # except there are no copies left
-    scenario.verify(marketplaceV3.data.swaps.get(0).objkt_amount == 0)
+    scenario.verify(marketplaceV3.data.swaps[0].objkt_amount == 0)
     scenario.verify(marketplaceV3.data.swaps.contains(1) == False)
     scenario.verify(marketplaceV3.data.counter == 1)
 
