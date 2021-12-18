@@ -1,5 +1,6 @@
 import smartpy as sp
 
+
 ## hDAO batch FA2 version
 
 ##
@@ -652,3 +653,4 @@ class View_consumer(sp.Contract):
             self.data.operator_support = True
         sp.else:
             self.data.operator_support = False
+
