@@ -38,24 +38,26 @@ class Marketplace(sp.Contract):
         # Define the contract storage data types for clarity
         self.init_type(sp.TRecord(
             manager=sp.TAddress,
-            fee_recipient=sp.TAddress,
             metadata=sp.TBigMap(sp.TString, sp.TBytes),
             allowed_fa2s=sp.TBigMap(sp.TAddress, sp.TBool),
             swaps=sp.TBigMap(sp.TNat, Marketplace.SWAP_TYPE),
             fee=sp.TNat,
+            fee_recipient=sp.TAddress,
             counter=sp.TNat,
-            paused=sp.TBool))
+            swaps_paused=sp.TBool,
+            collects_paused=sp.TBool))
 
         # Initialize the contract storage
         self.init(
             manager=manager,
-            fee_recipient=manager,
             metadata=metadata,
             allowed_fa2s=allowed_fa2s,
             swaps=sp.big_map(),
             fee=fee,
+            fee_recipient=manager,
             counter=0,
-            paused=False)
+            swaps_paused=False,
+            collects_paused=False)
 
     def check_is_manager(self):
         """Checks that the address that called the entry point is the contract
@@ -64,13 +66,6 @@ class Marketplace(sp.Contract):
         """
         sp.verify(sp.sender == self.data.manager,
                   message="This can only be executed by the manager")
-
-    def check_is_not_paused(self):
-        """Checks that the contract is not paused.
-
-        """
-        sp.verify(~self.data.paused,
-                  message="This contract is paused")
 
     def check_no_tez_transfer(self):
         """Checks that no tez were transferred in the operation.
@@ -94,8 +89,8 @@ class Marketplace(sp.Contract):
             creator=sp.TAddress).layout(
                 ("fa2", ("objkt_id", ("objkt_amount", ("xtz_per_objkt", ("royalties", "creator")))))))
 
-        # Check that the contract is not paused
-        self.check_is_not_paused()
+        # Check that swaps are not paused
+        sp.verify(~self.data.swaps_paused, message="Swaps are paused")
 
         # Check that no tez have been transferred
         self.check_no_tez_transfer()
@@ -144,15 +139,19 @@ class Marketplace(sp.Contract):
         # Define the input parameter data type
         sp.set_type(swap_id, sp.TNat)
 
-        # Check that the contract is not paused
-        self.check_is_not_paused()
+        # Check that collects are not paused
+        sp.verify(~self.data.collects_paused, message="Collects are paused")
 
         # Check that the swap id is present in the swaps big map
         sp.verify(self.data.swaps.contains(swap_id),
                   message="The provided swap_id doesn't exist")
 
-        # Check that the provided tez amount is exactly the edition price
+        # Check that the collector is not the creator of the swap
         swap = self.data.swaps[swap_id]
+        sp.verify(sp.sender != swap.issuer,
+                  message="The collector cannot be the swap issuer")
+
+        # Check that the provided tez amount is exactly the edition price
         sp.verify(sp.amount == swap.xtz_per_objkt,
                   message="The sent tez amount does not coincide with the edition price")
 
@@ -281,6 +280,25 @@ class Marketplace(sp.Contract):
         self.data.manager = new_manager
 
     @sp.entry_point
+    def update_metadata(self, params):
+        """Updates the contract metadata.
+
+        """
+        # Define the input parameter data type
+        sp.set_type(params, sp.TRecord(
+            key=sp.TString,
+            value=sp.TBytes).layout(("key", "value")))
+
+        # Check that the manager executed the entry point
+        self.check_is_manager()
+
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
+
+        # Update the contract metadata
+        self.data.metadata[params.key] = params.value
+
+    @sp.entry_point
     def add_fa2(self, fa2):
         """Adds a new FA2 token address to the list of tradable tokens.
 
@@ -315,8 +333,8 @@ class Marketplace(sp.Contract):
         self.data.allowed_fa2s[fa2] = False
 
     @sp.entry_point
-    def set_pause(self, pause):
-        """Pause or not the contract.
+    def pause_swaps(self, pause):
+        """Pause or not the swaps.
 
         """
         # Define the input parameter data type
@@ -328,8 +346,84 @@ class Marketplace(sp.Contract):
         # Check that no tez have been transferred
         self.check_no_tez_transfer()
 
-        # Pause or unpause the contract
-        self.data.paused = pause
+        # Pause or unpause the swaps
+        self.data.swaps_paused = pause
+
+    @sp.entry_point
+    def pause_collects(self, pause):
+        """Pause or not the collects.
+
+        """
+        # Define the input parameter data type
+        sp.set_type(pause, sp.TBool)
+
+        # Check that the manager executed the entry point
+        self.check_is_manager()
+
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
+
+        # Pause or unpause the collects
+        self.data.collects_paused = pause
+
+    @sp.onchain_view()
+    def get_manager(self):
+        """Returns the marketplace manager address.
+
+        """
+        sp.result(self.data.manager)
+
+    @sp.onchain_view()
+    def is_allowed_fa2(self, fa2):
+        """Checks if a given FA2 token contract can be traded in the
+        marketplace.
+
+        """
+        # Define the input parameter data type
+        sp.set_type(fa2, sp.TAddress)
+
+        # Return if it can be traded or not
+        sp.result(self.data.allowed_fa2s.get(fa2, default_value=False))
+
+    @sp.onchain_view()
+    def has_swap(self, swap_id):
+        """Check if a given swap id is present in the swaps big map.
+
+        """
+        # Define the input parameter data type
+        sp.set_type(swap_id, sp.TNat)
+
+        # Return True if the swap id is present in the swaps big map
+        sp.result(self.data.swaps.contains(swap_id))
+
+    @sp.onchain_view()
+    def get_swap(self, swap_id):
+        """Returns the complete information from a given swap id.
+
+        """
+        # Define the input parameter data type
+        sp.set_type(swap_id, sp.TNat)
+
+        # Check that the swap id is present in the swaps big map
+        sp.verify(self.data.swaps.contains(swap_id),
+                  message="The provided swap_id doesn't exist")
+
+        # Return the swap information
+        sp.result(self.data.swaps[swap_id])
+
+    @sp.onchain_view()
+    def get_fee(self):
+        """Returns the marketplace fee.
+
+        """
+        sp.result(self.data.fee)
+
+    @sp.onchain_view()
+    def get_fee_recipient(self):
+        """Returns the marketplace fee recipient address.
+
+        """
+        sp.result(self.data.fee_recipient)
 
     def fa2_transfer(self, fa2, from_, to_, token_id, token_amount):
         """Transfers a number of editions of a FA2 token between two addresses.
