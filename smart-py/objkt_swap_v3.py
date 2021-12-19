@@ -44,6 +44,7 @@ class Marketplace(sp.Contract):
             fee=sp.TNat,
             fee_recipient=sp.TAddress,
             counter=sp.TNat,
+            proposed_manager=sp.TOption(sp.TAddress),
             swaps_paused=sp.TBool,
             collects_paused=sp.TBool))
 
@@ -56,6 +57,7 @@ class Marketplace(sp.Contract):
             fee=fee,
             fee_recipient=manager,
             counter=0,
+            proposed_manager=sp.none,
             swaps_paused=False,
             collects_paused=False)
 
@@ -277,6 +279,46 @@ class Marketplace(sp.Contract):
         self.data.manager = new_manager
 
     @sp.entry_point
+    def transfer_manager(self, proposed_manager):
+        """Proposes to transfer the marketplace manager to another address.
+
+        """
+        # Define the input parameter data type
+        sp.set_type(proposed_manager, sp.TAddress)
+
+        # Check that the manager executed the entry point
+        self.check_is_manager()
+
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
+
+        # Set the new proposed manager address
+        self.data.proposed_manager = sp.some(proposed_manager)
+
+    @sp.entry_point
+    def accept_manager(self):
+        """The proposed manager accepts the marketplace manager
+        responsabilities.
+
+        """
+        # Check that there is a proposed manager
+        sp.verify(self.data.proposed_manager.is_some(),
+                  message="No new manager has been proposed")
+
+        # Check that the proposed manager executed the entry point
+        sp.verify(sp.sender == self.data.proposed_manager.open_some(),
+                  message="This can only be executed by the proposed manager")
+
+        # Check that no tez have been transferred
+        self.check_no_tez_transfer()
+
+        # Set the new manager address
+        self.data.manager = sp.sender
+
+        # Reset the proposed manager value
+        self.data.proposed_manager = sp.none
+
+    @sp.entry_point
     def update_metadata(self, params):
         """Updates the contract metadata.
 
@@ -407,6 +449,13 @@ class Marketplace(sp.Contract):
 
         # Return the swap information
         sp.result(self.data.swaps[swap_id])
+
+    @sp.onchain_view()
+    def get_swaps_counter(self):
+        """Returns the swaps counter.
+
+        """
+        sp.result(self.data.counter)
 
     @sp.onchain_view()
     def get_fee(self):
