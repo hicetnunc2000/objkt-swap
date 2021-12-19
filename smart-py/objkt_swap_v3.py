@@ -107,9 +107,6 @@ class Marketplace(sp.Contract):
         sp.verify(params.royalties <= 250,
                   message="The royalties cannot be higher than 25%")
 
-        sp.verify(params.royalties >= 100,
-                  message="The royalties cannot be lower than 10%")
-
         # Transfer all the editions to the marketplace account
         self.fa2_transfer(
             fa2=params.fa2,
