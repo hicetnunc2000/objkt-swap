@@ -262,23 +262,6 @@ class Marketplace(sp.Contract):
         self.data.fee_recipient = new_fee_recipient
 
     @sp.entry_point
-    def update_manager(self, new_manager):
-        """Updates the marketplace manager address.
-
-        """
-        # Define the input parameter data type
-        sp.set_type(new_manager, sp.TAddress)
-
-        # Check that the manager executed the entry point
-        self.check_is_manager()
-
-        # Check that no tez have been transferred
-        self.check_no_tez_transfer()
-
-        # Set the new manager address
-        self.data.manager = new_manager
-
-    @sp.entry_point
     def transfer_manager(self, proposed_manager):
         """Proposes to transfer the marketplace manager to another address.
 
