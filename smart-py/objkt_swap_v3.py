@@ -481,9 +481,9 @@ class Marketplace(sp.Contract):
             destination=c)
 
 
-# Add a compilation target initialized to a test account and the OBJKT FA2 contract
+# Add a compilation target initialized to a test account and the test OBJKT FA2 contract
 sp.add_compilation_target("marketplace", Marketplace(
     manager=sp.address("tz1gnL9CeM5h5kRzWZztFYLypCNnVQZjndBN"),
     metadata=sp.utils.metadata_of_url("ipfs://aaa"),
-    allowed_fa2s=sp.big_map({sp.address("KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"): True}),
+    allowed_fa2s=sp.big_map({sp.address("KT1QZhpqLNjoKM21mGuDo6ygE3NajEXKFHp9"): True}),
     fee=sp.nat(25)))
