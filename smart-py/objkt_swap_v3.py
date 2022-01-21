@@ -1,7 +1,7 @@
-"""Prototype for the next version of the H=N marketplace contract.
+"""The HEN Community marketplace contract.
 
-This version corrects several small bugs from the v2 marketplace contract and
-adds the possibility to trade different kinds of FA2 tokens.
+This version corrects several small bugs from the v2 H=N marketplace contract
+and adds the possibility to trade different kinds of FA2 tokens.
 
 """
 
@@ -9,8 +9,8 @@ import smartpy as sp
 
 
 class Marketplace(sp.Contract):
-    """This contract implements the next version of the H=N marketplace
-    contract.
+    """This contract implements the first version of the HEN Community
+    marketplace contract.
 
     """
 
@@ -34,18 +34,49 @@ class Marketplace(sp.Contract):
     def __init__(self, manager, metadata, allowed_fa2s, fee):
         """Initializes the contract.
 
+        Parameters
+        ----------
+        manager: sp.TAddress
+            The initial marketplace manager address. It could be a tz or KT
+            address.
+        metadata: sp.TBigMap(sp.TString, sp.TBytes)
+            The contract metadata big map. It should contain the IPFS path to
+            the contract metadata json file.
+        allowed_fa2s: sp.TBigMap(sp.TAddress, sp.TBool)
+            A big map with the list FA2 token addresses that can be traded (or
+            not) in the marketplace.
+        fee: sp.TNat
+            The marketplace fee in per mille units (25 = 2.5%).
+
         """
         # Define the contract storage data types for clarity
         self.init_type(sp.TRecord(
+            # The contract manager. It could be a tz or KT address.
             manager=sp.TAddress,
+            # The contract metadata bigmap.
+            # The metadata is stored as a json file in IPFS and the big map
+            # contains the IPFS path.
             metadata=sp.TBigMap(sp.TString, sp.TBytes),
+            # The big map with the FA2 token addresses that can be traded (or
+            # not) in the marketplace.
             allowed_fa2s=sp.TBigMap(sp.TAddress, sp.TBool),
+            # The big map with the swaps information.
             swaps=sp.TBigMap(sp.TNat, Marketplace.SWAP_TYPE),
+            # The marketplace fee taken for each collect operation in per mille
+            # units (25 = 2.5%).
             fee=sp.TNat,
+            # The address that will receive the marketplace fees. It could be
+            # a tz or KT address.
             fee_recipient=sp.TAddress,
+            # The swaps bigmap counter. It tracks the total number of swaps in
+            # the swaps big map.
             counter=sp.TNat,
+            # The proposed new manager address. Only set when a new manager is
+            # proposed.
             proposed_manager=sp.TOption(sp.TAddress),
+            # A flag that indicates if the marketplace swaps are paused or not.
             swaps_paused=sp.TBool,
+            # A flag that indicates if the marketplace collects are paused or not.
             collects_paused=sp.TBool))
 
         # Initialize the contract storage
@@ -79,6 +110,18 @@ class Marketplace(sp.Contract):
     @sp.entry_point
     def swap(self, params):
         """Swaps several editions of a token for a fixed price.
+
+        Parameters
+        ----------
+        params: sp.TRecord
+            The swap parameters:
+            - fa2: the FA2 token contract address.
+            - objkt_id: the OBJKT id.
+            - objkt_amount: the number of editions to swap.
+            - xtz_per_objkt: the price per edition in mutez.
+            - royalties: the artist/creator royalties in per mille units.
+            - creator: the artist/creator address. It could be a KT address for
+              artists collaborations.
 
         """
         # Define the input parameter data type
@@ -133,6 +176,12 @@ class Marketplace(sp.Contract):
     @sp.entry_point
     def collect(self, swap_id):
         """Collects one edition of a token that has already been swapped.
+
+        Parameters
+        ----------
+        swap_id: sp.TNat
+            The swap id. It refers to the swaps big map key containing the swap
+            parameters.
 
         """
         # Define the input parameter data type
@@ -192,6 +241,12 @@ class Marketplace(sp.Contract):
     def cancel_swap(self, swap_id):
         """Cancels an existing swap.
 
+        Parameters
+        ----------
+        swap_id: sp.TNat
+            The swap id. It refers to the swaps big map key containing the swap
+            parameters.
+
         """
         # Define the input parameter data type
         sp.set_type(swap_id, sp.TNat)
@@ -227,6 +282,11 @@ class Marketplace(sp.Contract):
     def update_fee(self, new_fee):
         """Updates the marketplace management fees.
 
+        Parameters
+        ----------
+        new_fee: sp.TNat
+            The new marketplace fee in per mille units (25 = 2.5%).
+
         """
         # Define the input parameter data type
         sp.set_type(new_fee, sp.TNat)
@@ -248,6 +308,12 @@ class Marketplace(sp.Contract):
     def update_fee_recipient(self, new_fee_recipient):
         """Updates the marketplace management fee recipient address.
 
+        Parameters
+        ----------
+        new_fee_recipient: sp.TAddress
+            The new address that will receive the marketplace fees. It could be
+            a tz or KT address.
+
         """
         # Define the input parameter data type
         sp.set_type(new_fee_recipient, sp.TAddress)
@@ -264,6 +330,12 @@ class Marketplace(sp.Contract):
     @sp.entry_point
     def transfer_manager(self, proposed_manager):
         """Proposes to transfer the marketplace manager to another address.
+
+        Parameters
+        ----------
+        proposed_manager: sp.TAddress
+            The address of the proposed new marketplace manager. It could be a
+            tz or KT address.
 
         """
         # Define the input parameter data type
@@ -305,6 +377,13 @@ class Marketplace(sp.Contract):
     def update_metadata(self, params):
         """Updates the contract metadata.
 
+        Parameters
+        ----------
+        params: sp.TRecord
+            The updated metadata parameters:
+            - key: the metadata big map key to update.
+            - value: the IPFS path to the json file with the updated metadata.
+
         """
         # Define the input parameter data type
         sp.set_type(params, sp.TRecord(
@@ -324,6 +403,11 @@ class Marketplace(sp.Contract):
     def add_fa2(self, fa2):
         """Adds a new FA2 token address to the list of tradable tokens.
 
+        Parameters
+        ----------
+        fa2: sp.TAddress
+            The FA2 token contract address to trade.
+
         """
         # Define the input parameter data type
         sp.set_type(fa2, sp.TAddress)
@@ -340,6 +424,11 @@ class Marketplace(sp.Contract):
     @sp.entry_point
     def remove_fa2(self, fa2):
         """Removes one of the tradable FA2 token address.
+
+        Parameters
+        ----------
+        fa2: sp.TAddress
+            The FA2 token contract address to remove.
 
         """
         # Define the input parameter data type
@@ -358,6 +447,12 @@ class Marketplace(sp.Contract):
     def pause_swaps(self, pause):
         """Pause or not the swaps.
 
+        Parameters
+        ----------
+        pause: sp.TBool
+            If true, swaps will be paused in the marketplace. False will allow
+            to create new swaps again.
+
         """
         # Define the input parameter data type
         sp.set_type(pause, sp.TBool)
@@ -374,6 +469,12 @@ class Marketplace(sp.Contract):
     @sp.entry_point
     def pause_collects(self, pause):
         """Pause or not the collects.
+
+        Parameters
+        ----------
+        pause: sp.TBool
+            If true, collects will be paused in the marketplace. False will
+            allow to collect again.
 
         """
         # Define the input parameter data type
@@ -392,6 +493,11 @@ class Marketplace(sp.Contract):
     def get_manager(self):
         """Returns the marketplace manager address.
 
+        Returns
+        -------
+        sp.TAddress
+            The marketplace manager address.
+
         """
         sp.result(self.data.manager)
 
@@ -399,6 +505,16 @@ class Marketplace(sp.Contract):
     def is_allowed_fa2(self, fa2):
         """Checks if a given FA2 token contract can be traded in the
         marketplace.
+
+        Parameters
+        ----------
+        fa2: sp.TAddress
+            The FA2 token contract address.
+
+        Returns
+        -------
+        sp.TBool
+            True, if the token can be traded in the marketplace.
 
         """
         # Define the input parameter data type
@@ -411,6 +527,16 @@ class Marketplace(sp.Contract):
     def has_swap(self, swap_id):
         """Check if a given swap id is present in the swaps big map.
 
+        Parameters
+        ----------
+        swap_id: sp.TNat
+            The swap id.
+
+        Returns
+        -------
+        sp.TBool
+            True, if there is a swap with the provided id.
+
         """
         # Define the input parameter data type
         sp.set_type(swap_id, sp.TNat)
@@ -421,6 +547,23 @@ class Marketplace(sp.Contract):
     @sp.onchain_view()
     def get_swap(self, swap_id):
         """Returns the complete information from a given swap id.
+
+        Parameters
+        ----------
+        swap_id: sp.TNat
+            The swap id.
+
+        Returns
+        -------
+        sp.TRecord
+            The swap parameters:
+            - issuer: the swap issuer address.
+            - fa2: the FA2 token contract address.
+            - objkt_id: the OBJKT id.
+            - objkt_amount: the number of currently swapped editions.
+            - xtz_per_objkt: the price per edition in mutez.
+            - royalties: the artist/creator royalties in per mille units.
+            - creator: the artist/creator address.
 
         """
         # Define the input parameter data type
@@ -437,12 +580,22 @@ class Marketplace(sp.Contract):
     def get_swaps_counter(self):
         """Returns the swaps counter.
 
+        Returns
+        -------
+        sp.TNat
+            The total number of swaps.
+
         """
         sp.result(self.data.counter)
 
     @sp.onchain_view()
     def get_fee(self):
         """Returns the marketplace fee.
+
+        Returns
+        -------
+        sp.TNat
+            The marketplace fee in per mille units.
 
         """
         sp.result(self.data.fee)
@@ -451,11 +604,29 @@ class Marketplace(sp.Contract):
     def get_fee_recipient(self):
         """Returns the marketplace fee recipient address.
 
+        Returns
+        -------
+        sp.TAddress
+            The address that receives the marketplace fees.
+
         """
         sp.result(self.data.fee_recipient)
 
     def fa2_transfer(self, fa2, from_, to_, token_id, token_amount):
         """Transfers a number of editions of a FA2 token between two addresses.
+
+        Parameters
+        ----------
+        fa2: sp.TAddress
+            The FA2 token contract address.
+        from_: sp.TAddress
+            The address from which the tokens will be transferred.
+        to_: sp.TAddress
+            The address that will receive the tokens.
+        token_id: sp.TNat
+            The token id.
+        token_amount: sp.TNat
+            The number of token editions to transfer.
 
         """
         # Get a handle to the FA2 token transfer entry point
