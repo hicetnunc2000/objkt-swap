@@ -24,6 +24,11 @@ Hic et nunc Markeplace (OBJKT Swap v2): KT1HbQepzV1nVGg8QVznG7z4RcHseD5kwqBn
 hDAO Marketplace (OBJKT Swap v2.1): KT1QPvv7sWVaT9PcPiC4fN9BgfX8NB2d5WzL
 ```
 
+```references```
+
+[TZIP-12](https://gitlab.com/tezos/tzip/-/blob/master/proposals/tzip-12/tzip-12.md)<br />
+[TZIP-21 Rich Metadadata](https://gitlab.com/tezos/tzip/-/blob/master/proposals/tzip-21/tzip-21.md)
+
 `
 MIT license
 `
