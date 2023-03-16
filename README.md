@@ -33,5 +33,5 @@ hDAO Marketplace (OBJKT Swap v2.1): KT1QPvv7sWVaT9PcPiC4fN9BgfX8NB2d5WzL
 MIT license
 `
 
-disclaimer: no forks or alternative services are endorsed or have any relationship to the present project unless stated otherwise.
+disclaimer: no forks or alternative services are endorsed or have any relation to the present project unless stated otherwise.
 
