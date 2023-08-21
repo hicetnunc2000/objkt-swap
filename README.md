@@ -33,9 +33,9 @@ hDAO Marketplace (OBJKT Swap v2.1): KT1QPvv7sWVaT9PcPiC4fN9BgfX8NB2d5WzL
 MIT license
 `
 
-`
+```
 By using this code, you agree that you will not copy and redistribute the work or any derivative version or use any associated logos or branding. You must replace all written mentions or images in the codebase that are associated with the present project with your own name and imagery. You may not attempt to mislead people into thinking that your work is the original hicetnunc2000lab.
-`
+```
 
 disclaimer: no forks or alternative services are endorsed or have any association to the present project. this is experimental software and is provided on an "as is" and "as available" basis.  we do not give any warranties and will not be liable for any losses incurred through any use of this code base.
 
